@@ -1,1 +1,96 @@
-6DUbFShstr2DAYAR/Proposal Generator - Lead
+// Enhanced JSON parsing with better error handling and validation
+const geminiResponse = $input.first();
+
+// Extract text content from various Gemini response formats
+let responseText = '';
+
+if (geminiResponse.json?.[0]?.content?.parts?.[0]?.text) {
+  responseText = geminiResponse.json[0].content.parts[0].text;
+} else if (geminiResponse.json?.content?.parts?.[0]?.text) {
+  responseText = geminiResponse.json.content.parts[0].text;
+} else if (typeof geminiResponse.json === 'string') {
+  responseText = geminiResponse.json;
+} else {
+  responseText = JSON.stringify(geminiResponse.json);
+}
+
+// Ensure string conversion and clean formatting
+responseText = String(responseText).trim();
+
+// Remove markdown code fences and extra whitespace
+responseText = responseText
+  .replace(/```json\n?/gi, '')
+  .replace(/```\n?/gi, '')
+  .replace(/^\s+|\s+$/gm, '')
+  .trim();
+
+// Multiple parsing strategies for robustness
+let parsedContent;
+try {
+  // First attempt: direct parsing
+  parsedContent = JSON.parse(responseText);
+} catch (error) {
+  try {
+    // Second attempt: extract JSON object
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      parsedContent = JSON.parse(jsonMatch[0]);
+    } else {
+      throw new Error('No JSON object found');
+    }
+  } catch (secondError) {
+    // Third attempt: fix common JSON issues
+    let cleanedText = responseText
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Add quotes to keys
+      .replace(/:\s*([^\[\]{},"\n\r]+)(?=[,}])/g, ': "$1"') // Add quotes to values
+      .replace(/,\s*}/g, '}') // Remove trailing commas
+      .replace(/,\s*]/g, ']');
+    
+    try {
+      parsedContent = JSON.parse(cleanedText);
+    } catch (finalError) {
+      console.error('All parsing attempts failed:', finalError);
+      throw new Error('Could not parse JSON from response: ' + responseText.substring(0, 200) + '...');
+    }
+  }
+}
+
+// Validate required fields
+const requiredFields = [
+  'proposalTitle', 'descriptionName', 'oneParagraphProblemSummary',
+  'solutionHeadingOne', 'solutionDescriptionOne', 'solutionHeadingTwo',
+  'solutionDescriptionTwo', 'solutionHeadingThree', 'solutionDescriptionThree',
+  'shortScopeTitleOne', 'shortScopeTitleTwo', 'shortScopeTitleThree',
+  'shortScopeDescriptionOne', 'shortScopeDescriptionTwo', 'shortScopeDescriptionThree',
+  'milestoneOneDay', 'milestoneTwoDay', 'milestoneThreeDay', 'milestoneFourDay',
+  'milestoneDescriptionOne', 'milestoneDescriptionTwo', 'milestoneDescriptionThree',
+  'milestoneDescriptionFour'
+];
+
+// Check for missing fields and provide defaults
+requiredFields.forEach(field => {
+  if (!parsedContent[field] || parsedContent[field].trim() === '') {
+    console.warn(`Missing or empty field: ${field}`);
+    parsedContent[field] = `[${field} - Please review]`;
+  }
+});
+
+// Return in OpenAI-compatible format with enhanced metadata
+return {
+  json: {
+    index: 0,
+    message: {
+      role: "assistant",
+      content: parsedContent,
+      refusal: null,
+      annotations: [],
+      metadata: {
+        processingTime: new Date().toISOString(),
+        fieldsValidated: requiredFields.length,
+        parsingStrategy: 'enhanced_robust'
+      }
+    },
+    logprobs: null,
+    finish_reason: "stop"
+  }
+};
