@@ -1,1 +1,1412 @@
-File Created for my content
+{
+  "createdAt": "2025-08-19T13:28:41.455Z",
+  "updatedAt": "2025-08-20T06:29:59.000Z",
+  "id": "XWbGqO0Ze2Wk8vSF",
+  "name": "GitHub Repo → Auto Documentation",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "GitHub Repository Documentation Generator",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "GitHub URL",
+              "placeholder": "https://github.com/username/repository",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Branch Name",
+              "placeholder": "main",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        80
+      ],
+      "id": "7bf55e26-1113-4ab6-93ee-80e459e16b0a",
+      "name": "GitHub Form Input",
+      "webhookId": "c492d0f2-9f02-4980-81a4-446878327e92"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract username and repo from GitHub URL\nconst url = $input.first().json['GitHub URL'];\nconst branch = $input.first().json['Branch Name'] || 'main';\n\nconst match = url.match(/github\\.com\\/([^\\/]+)\\/([^\\/]+?)(\\.git)?$/);\n\nif (!match) {\n  throw new Error('Invalid GitHub URL format');\n}\n\nconst username = match[1];\nconst reponame = match[2].replace(/\\.git$/, \"\");\n\nreturn [{ \n  json: { \n    username, \n    reponame, \n    branch,\n    repoUrl: `https://api.github.com/repos/${username}/${reponame}`,\n    treeUrl: `https://api.github.com/repos/${username}/${reponame}/git/trees/${branch}?recursive=1`\n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        80
+      ],
+      "id": "d6360ffa-e0b0-4128-a3d1-6c940d5fdd41",
+      "name": "Parse GitHub URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.repoUrl }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        16
+      ],
+      "id": "e2bb9e79-50fb-4395-9331-370809860cde",
+      "name": "Get Repository Info"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Parse GitHub URL').first().json.treeUrl }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        160
+      ],
+      "id": "7be0dedf-f969-4e0c-86e8-77d3d70549db",
+      "name": "Get Repository Tree"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clone and validate previous node data\nconst repoInfoNode = $('Get Repository Info').first();\nif (!repoInfoNode || !repoInfoNode.json) throw new Error(\"Repo info not available\");\nconst repoInfo = JSON.parse(JSON.stringify(repoInfoNode.json));\n\nconst treeInfoNode = $('Get Repository Tree').first();\nif (!treeInfoNode || !treeInfoNode.json?.tree) throw new Error(\"Tree info not available\");\nconst treeInfo = JSON.parse(JSON.stringify(treeInfoNode.json));\n\nconst urlDataNode = $('Parse GitHub URL').first();\nif (!urlDataNode || !urlDataNode.json) throw new Error(\"URL data not available\");\nconst urlData = JSON.parse(JSON.stringify(urlDataNode.json));\n\nconst { username, reponame, branch } = urlData;\n\n// Filter and prepare file URLs (limit to important files for performance)\nconst importantExtensions = [\n  '.md', '.txt', '.json', '.yml', '.yaml', '.js', '.ts', '.py', \n  '.java', '.go', '.rs', '.php', '.rb', '.cpp', '.c', '.h'\n];\nconst maxFiles = 50; // Limit files to prevent timeout\n\nconst fileUrls = treeInfo.tree\n  .filter(node => {\n    if (node.type !== 'blob') return false;\n    const ext = node.path.toLowerCase().substring(node.path.lastIndexOf('.'));\n    return importantExtensions.includes(ext) || \n           node.path.toLowerCase().includes('readme') ||\n           node.path.toLowerCase().includes('package') ||\n           node.path.toLowerCase().includes('requirements') ||\n           node.path.toLowerCase().includes('dockerfile') ||\n           node.path.toLowerCase().includes('makefile');\n  })\n  .slice(0, maxFiles)\n  .map(node => ({\n    url: `https://raw.githubusercontent.com/${username}/${reponame}/${branch}/${node.path}`,\n    path: node.path,\n    filename: node.path.split('/').pop()\n  }));\n\n// Prepare repository metadata safely\nconst repoMetadata = {\n  name: repoInfo.name || 'Not specified',\n  fullName: repoInfo.full_name || 'Not specified',\n  description: repoInfo.description || '',\n  language: repoInfo.language || '',\n  topics: repoInfo.topics || [],\n  stars: repoInfo.stargazers_count || 0,\n  forks: repoInfo.forks_count || 0,\n  license: repoInfo.license?.name || 'Not specified',\n  lastUpdated: repoInfo.updated_at || '',\n  defaultBranch: repoInfo.default_branch || branch,\n  homepage: repoInfo.homepage || '',\n  size: repoInfo.size || 0\n};\n\n// Return final output for n8n\nreturn fileUrls.map(file => ({\n  json: {\n    ...file,\n    repoMetadata,\n    batchId: Math.floor(Math.random() * 1000000)\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        80
+      ],
+      "id": "5cd32804-fec8-4fc2-b38a-2ae611f44b95",
+      "name": "Process Repository Data"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        608,
+        80
+      ],
+      "id": "c62b6d63-33eb-4644-ac79-dbc85f476eb5",
+      "name": "Batch File Processing"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "redirect": {},
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        208
+      ],
+      "id": "51143428-15fa-44e0-8bc9-5270876d0e93",
+      "name": "Fetch File Content"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine file content with metadata\nconst item = $input.first().json;\nconst content = item.data || '';\nconst batchItem = $('Batch File Processing').first().json;\n\n// Only include files with substantial content\nif (content.length < 10) {\n  return [];\n}\n\nreturn [{\n  json: {\n    filename: batchItem.filename,\n    path: batchItem.path,\n    content: content.substring(0, 10000), // Limit content length\n    size: content.length,\n    repoMetadata: batchItem.repoMetadata\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        208
+      ],
+      "id": "2a2cdd11-c21c-4af3-9f7b-0bdfd0de54ef",
+      "name": "Process File Content"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        928,
+        64
+      ],
+      "id": "26ffb0db-91d1-473e-9184-a6fc4213037e",
+      "name": "Aggregate All Files"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst firstItem = allItems[0]?.json?.data?.[0];  // notice .data[0]\n\nif (!firstItem?.repoMetadata) {\n  throw new Error('No repository metadata found');\n}\n\nconst repoMetadata = firstItem.repoMetadata;\n\nconst files = allItems.flatMap(item => item.json.data || []).map(f => ({\n  filename: f.filename,\n  path: f.path,\n  content: f.content,\n  size: f.size\n}));\n\nconst structuredData = {\n  repository: {\n    name: repoMetadata.name,\n    fullName: repoMetadata.fullName,\n    description: repoMetadata.description,\n    primaryLanguage: repoMetadata.language,\n    topics: repoMetadata.topics,\n    statistics: {\n      stars: repoMetadata.stars,\n      forks: repoMetadata.forks,\n      size: repoMetadata.size\n    },\n    lastUpdated: repoMetadata.lastUpdated,\n    license: repoMetadata.license,\n    homepage: repoMetadata.homepage\n  },\n  files: files,\n  summary: {\n    totalFiles: files.length,\n    totalSize: files.reduce((sum, f) => sum + f.size, 0),\n    fileTypes: [...new Set(files.map(f => f.filename.split('.').pop()))]\n  }\n};\n\nreturn [{ json: { data: JSON.stringify(structuredData, null, 2) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        64
+      ],
+      "id": "859681de-0288-4aa9-8ad4-87a02efd882e",
+      "name": "Prepare Data for AI"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=# GitHub Repository Documentation Generator\n\nYou are a Senior Technical Documentation Specialist. Analyze the provided GitHub repository data and create comprehensive, professional documentation.\n\n## Your Task\nGenerate enterprise-grade documentation that includes:\n\n1. **Executive Summary** - Project overview, key features, and status\n2. **Technical Architecture** - Technology stack, dependencies, and integrations\n3. **Project Structure** - Directory overview and core components\n4. **Installation Guide** - Prerequisites, setup steps, and verification\n5. **Usage Documentation** - Basic operations, configuration, and examples\n6. **API Documentation** (if applicable) - Endpoints, authentication, examples\n7. **Development Guidelines** - Code standards, testing, and workflow\n8. **Troubleshooting** - Common issues and solutions\n9. **Maintenance** - Regular tasks, version history, support channels\n10. **Legal Information** - License, copyright, security policy\n\n## Quality Standards\n- Use clear, professional language\n- Include working code examples\n- Provide complete installation instructions\n- Add troubleshooting for common issues\n- Use GitHub Flavored Markdown formatting\n- Ensure all sections are comprehensive\n\n## Repository Data\n```json\n{{ $json.data }}\n```\n\nGenerate complete, professional documentation based on this repository analysis. "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        64
+      ],
+      "id": "7224165c-630f-4be6-a7e8-9447ec383fef",
+      "name": "Generate Documentation"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        80
+      ],
+      "id": "da8d53ef-9e69-4125-9897-52bc2287e365",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiData = $input.first().json.content.parts[0].text;\n\n// Remove Markdown fences if present\nlet docText = aiData\n  .replace(/^```markdown\\n/, '')   // remove opening ```markdown\n  .replace(/^```\\n/, '')           // remove opening ``` if plain\n  .replace(/```$/, '');            // remove closing ```\n\n// Remove all double newlines\ndocText = docText.replace(/\\n\\n/g, '\\n');\n\nreturn [{ json: { docText } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        64
+      ],
+      "id": "e18b6da4-d660-4be6-9920-465f50e909b5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## 🎯 GITHUB DOCUMENTATION GENERATOR\n### Automatically creates comprehensive docs from any GitHub repository\nInput: GitHub URL → Output: Professional markdown documentation",
+        "width": 768,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        -640
+      ],
+      "typeVersion": 1,
+      "id": "66e6f37a-b8db-454f-97ac-d45a4d197723",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 📝 USER INPUT SECTION\n- GitHub repository URL\n- Branch name (defaults to 'main')\n- Form validates URL format before processing",
+        "height": 464,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -672,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "ce765b63-272f-4c1a-928b-f130ff1dde31",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔍 REPOSITORY ANALYSIS\n- Extracts repo metadata (stars, forks, language)\n- Fetches complete file tree structure\n- Filters for important file types only\n- Limits to 50 files for performance",
+        "height": 464,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "3b0e18f9-0920-46ec-822b-e582df04c36c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ FILE CONTENT EXTRACTION\n- Processes files in batches to prevent timeouts\n- Fetches raw content from GitHub\n- Filters files with substantial content (>10 chars)\n- Truncates large files to 10KB max",
+        "height": 496,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "34b01b77-fe59-4e95-a848-8634c3961739",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 🏗️ DATA STRUCTURING\n- Combines all file contents with metadata\n- Creates structured JSON for AI processing\n- Includes repo stats, file types, and content",
+        "height": 496,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "656393fa-2d21-4e96-9c2b-6c84db56d007",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 AI DOCUMENTATION CREATION\n- Uses Google Gemini 2.0 Flash model\n- Generates 10 comprehensive sections\n- Professional enterprise-grade output\n- Includes troubleshooting & best practices",
+        "height": 368,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1376,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "62e8bead-ed4c-4b5f-9c75-b2eb81088ae3",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## 📋 Remove /n FROM OUTPUT\n- Cleans markdown formatting\n- Returns ready-to-use documentation\n- Can be saved directly as README.md",
+        "height": 368,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "9d3613f5-acbc-419e-91d3-8f2e01fcccf0",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "multipart"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "multipart/related; boundary=foo_bar_baz",
+        "body": "=--foo_bar_baz\nContent-Type: application/json; charset=UTF-8\n\n{\n  \"name\": \"Documents\",\n  \"mimeType\": \"application/vnd.google-apps.document\"\n}\n\n--foo_bar_baz\nContent-Type: text/html; charset=UTF-8\n\n{{ $json.data }}\n\n--foo_bar_baz--",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2592,
+        64
+      ],
+      "id": "9954318e-3bd4-454d-9c69-1079ffd44ac1",
+      "name": "Putting Content in the Google Docs2",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1ic-czhUoqk-Zv_d9UPDfdMfOfuBTT2Ru",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1ic-czhUoqk-Zv_d9UPDfdMfOfuBTT2Ru"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3056,
+        64
+      ],
+      "id": "96c12fda-6a75-4f64-a3b4-6f655b7d566d",
+      "name": "Move file"
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.docText }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        64
+      ],
+      "id": "b53ef02d-7100-4d06-a541-85b3528d5dba",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "content": "## 📋 CONVERT MARKDOWN\n\n- Convert all AI-generated text from Markdown → Plain Text (remove ``` fences, extra \\n\\n).\n- Prepare cleaned text as docText.\n- Send docText as JSON body in Google Docs API → batchUpdate request",
+        "height": 368,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2048,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "99ebb8c7-2112-4bf0-b8ef-2ae228ade65b",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## 📝 PUTTING CONTENT IN GOOGLE DOCS\n\n- Use HTTP Request → POST to upload content into Google Docs.\n- Endpoint: https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart\n- Credential Type: Google Drive OAuth2 API.\n- mimeType: application/vnd.google-apps.document\n- Pass your processed text (docText) as file content in the request body.\n- Output: Creates a new Google Doc file and returns id, name, and mimeType.",
+        "height": 576,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2448,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "c538175a-237d-4a05-a91f-60d6a44ceedf",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## 📂 GOOGLE DRIVE FILE MOVER\n\n- Node: Google Drive → Move\n- Operation: Move file to target folder\n- File ID: {{ $json.fileId }}\n- Parent Folder: info\n- Input: doc1 (Google Doc created earlier)\n- Use Case: Auto-organize Google Docs (or other files) into folders after triggers (e.g., workflow completion).",
+        "height": 576,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2896,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "2cab0b5d-197a-42e8-bf8e-9b5d49fa47cc",
+      "name": "Sticky Note9"
+    }
+  ],
+  "connections": {
+    "GitHub Form Input": {
+      "main": [
+        [
+          {
+            "node": "Parse GitHub URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse GitHub URL": {
+      "main": [
+        [
+          {
+            "node": "Get Repository Info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Repository Tree",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Repository Info": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Repository Tree": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Process Repository Data": {
+      "main": [
+        [
+          {
+            "node": "Batch File Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch File Processing": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch File Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch File Content": {
+      "main": [
+        [
+          {
+            "node": "Process File Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process File Content": {
+      "main": [
+        [
+          {
+            "node": "Batch File Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Files": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data for AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data for AI": {
+      "main": [
+        [
+          {
+            "node": "Generate Documentation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Documentation": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Process Repository Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Putting Content in the Google Docs2": {
+      "main": [
+        [
+          {
+            "node": "Move file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Putting Content in the Google Docs2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "GitHub Form Input": [
+      {
+        "json": {
+          "GitHub URL": "https://github.com/sanjay-e2m/PDF-Question-Answering.git",
+          "Branch Name": "main",
+          "submittedAt": "2025-08-20T01:26:06.181-04:00",
+          "formMode": "test"
+        }
+      }
+    ],
+    "Parse GitHub URL": [
+      {
+        "json": {
+          "username": "sanjay-e2m",
+          "reponame": "PDF-Question-Answering",
+          "branch": "main",
+          "repoUrl": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering",
+          "treeUrl": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/main?recursive=1"
+        }
+      }
+    ],
+    "Get Repository Info": [
+      {
+        "json": {
+          "id": 1040031393,
+          "node_id": "R_kgDOPf2eoQ",
+          "name": "PDF-Question-Answering",
+          "full_name": "sanjay-e2m/PDF-Question-Answering",
+          "private": false,
+          "owner": {
+            "login": "sanjay-e2m",
+            "id": 224560819,
+            "node_id": "U_kgDODWKGsw",
+            "avatar_url": "https://avatars.githubusercontent.com/u/224560819?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/sanjay-e2m",
+            "html_url": "https://github.com/sanjay-e2m",
+            "followers_url": "https://api.github.com/users/sanjay-e2m/followers",
+            "following_url": "https://api.github.com/users/sanjay-e2m/following{/other_user}",
+            "gists_url": "https://api.github.com/users/sanjay-e2m/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/sanjay-e2m/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/sanjay-e2m/subscriptions",
+            "organizations_url": "https://api.github.com/users/sanjay-e2m/orgs",
+            "repos_url": "https://api.github.com/users/sanjay-e2m/repos",
+            "events_url": "https://api.github.com/users/sanjay-e2m/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/sanjay-e2m/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/sanjay-e2m/PDF-Question-Answering",
+          "description": "PDF-Question-Answering",
+          "fork": false,
+          "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering",
+          "forks_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/forks",
+          "collaborators_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/teams",
+          "hooks_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/hooks",
+          "issue_events_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/events",
+          "assignees_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/tags",
+          "blobs_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/languages",
+          "stargazers_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/stargazers",
+          "contributors_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/contributors",
+          "subscribers_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/subscribers",
+          "subscription_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/subscription",
+          "commits_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/merges",
+          "archive_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/downloads",
+          "issues_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/labels{/name}",
+          "releases_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/deployments",
+          "created_at": "2025-08-18T11:00:01Z",
+          "updated_at": "2025-08-19T04:55:08Z",
+          "pushed_at": "2025-08-19T04:55:05Z",
+          "git_url": "git://github.com/sanjay-e2m/PDF-Question-Answering.git",
+          "ssh_url": "git@github.com:sanjay-e2m/PDF-Question-Answering.git",
+          "clone_url": "https://github.com/sanjay-e2m/PDF-Question-Answering.git",
+          "svn_url": "https://github.com/sanjay-e2m/PDF-Question-Answering",
+          "homepage": null,
+          "size": 12354,
+          "stargazers_count": 0,
+          "watchers_count": 0,
+          "language": "Python",
+          "has_issues": true,
+          "has_projects": true,
+          "has_downloads": true,
+          "has_wiki": true,
+          "has_pages": false,
+          "has_discussions": false,
+          "forks_count": 0,
+          "mirror_url": null,
+          "archived": false,
+          "disabled": false,
+          "open_issues_count": 0,
+          "license": null,
+          "allow_forking": true,
+          "is_template": false,
+          "web_commit_signoff_required": false,
+          "topics": [],
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 0,
+          "watchers": 0,
+          "default_branch": "main",
+          "network_count": 0,
+          "subscribers_count": 0
+        }
+      }
+    ],
+    "Get Repository Tree": [
+      {
+        "json": {
+          "sha": "6cb515f6e990942a03c1f1613525965af1ed82ed",
+          "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/6cb515f6e990942a03c1f1613525965af1ed82ed",
+          "tree": [
+            {
+              "path": "README.md",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "4b124b015356a64552c5b8b5263d1c57b38260d3",
+              "size": 4395,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/4b124b015356a64552c5b8b5263d1c57b38260d3"
+            },
+            {
+              "path": "falcon.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "4a122a11da91538f010eb31e1dc23c5eaa5530d7",
+              "size": 1844,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/4a122a11da91538f010eb31e1dc23c5eaa5530d7"
+            },
+            {
+              "path": "gpt.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "2a348d903a8198dc68a86e7c8390e270fd253453",
+              "size": 1789,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/2a348d903a8198dc68a86e7c8390e270fd253453"
+            },
+            {
+              "path": "gpt_falcon.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "a0105030f865000965893fadd2a0e4199540a205",
+              "size": 2241,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/a0105030f865000965893fadd2a0e4199540a205"
+            },
+            {
+              "path": "gpt_with_chunks.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "468882fab1e9fcd0d5897e322a27d681cafc505d",
+              "size": 3010,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/468882fab1e9fcd0d5897e322a27d681cafc505d"
+            },
+            {
+              "path": "naruto.jpg",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "cc9ec50c85c2f785608d63d0a7679243aaab50a1",
+              "size": 164243,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/cc9ec50c85c2f785608d63d0a7679243aaab50a1"
+            },
+            {
+              "path": "rom",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "46a498b5f48039daf02173aa83ce45113e77800f",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/46a498b5f48039daf02173aa83ce45113e77800f"
+            },
+            {
+              "path": "rom/sss.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            },
+            {
+              "path": "test",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "6f7e82612e83101cca3b304f7650bf125ddb5f45",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/6f7e82612e83101cca3b304f7650bf125ddb5f45"
+            },
+            {
+              "path": "test/environ.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            },
+            {
+              "path": "test/sem",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "dac294997e415c8faaa5f44d576ea0cceabd28e4",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/dac294997e415c8faaa5f44d576ea0cceabd28e4"
+            },
+            {
+              "path": "test/sem/fds.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            }
+          ],
+          "truncated": false
+        }
+      }
+    ],
+    "Process Repository Data": [
+      {
+        "json": {
+          "url": "https://raw.githubusercontent.com/sanjay-e2m/PDF-Question-Answering/main/README.md",
+          "path": "README.md",
+          "filename": "README.md",
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          },
+          "batchId": 262179
+        }
+      },
+      {
+        "json": {
+          "url": "https://raw.githubusercontent.com/sanjay-e2m/PDF-Question-Answering/main/falcon.py",
+          "path": "falcon.py",
+          "filename": "falcon.py",
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          },
+          "batchId": 34576
+        }
+      },
+      {
+        "json": {
+          "url": "https://raw.githubusercontent.com/sanjay-e2m/PDF-Question-Answering/main/gpt.py",
+          "path": "gpt.py",
+          "filename": "gpt.py",
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          },
+          "batchId": 938304
+        }
+      },
+      {
+        "json": {
+          "url": "https://raw.githubusercontent.com/sanjay-e2m/PDF-Question-Answering/main/gpt_falcon.py",
+          "path": "gpt_falcon.py",
+          "filename": "gpt_falcon.py",
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          },
+          "batchId": 123884
+        }
+      },
+      {
+        "json": {
+          "url": "https://raw.githubusercontent.com/sanjay-e2m/PDF-Question-Answering/main/gpt_with_chunks.py",
+          "path": "gpt_with_chunks.py",
+          "filename": "gpt_with_chunks.py",
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          },
+          "batchId": 184908
+        }
+      }
+    ],
+    "Fetch File Content": [
+      {
+        "json": {
+          "data": "# PDF-Question-Answering\nAskYourPDF is a powerful Python application built with Streamlit and LangChain, designed to make PDF documents interactive and easily queryable. This project leverages LangChain's capabilities, including text splitting, embeddings, and vector stores, to enhance the user experience when working with PDFs. Whether you want to perform a similarity search, retrieve top-k chunks, or submit questions to language models like OpenAI or Falcon-7B, AskYourPDF streamlines the process with an intuitive and user-friendly interface.\n\n### Note - You need OpenAI API and HuggingFace API to run this application\nStore them into a `.env` file\n\n## How it works\nUtilizing FAISS vector database, our application processes PDFs, creating vector representations of text chunks using OpenAI embeddings. These vectors are efficiently stored in FAISS, enabling quick retrieval of semantically similar chunks in response to user queries. The selected chunks are then input into a Language Model (LLM) for generating contextually relevant responses. The application uses Streamlit to create the GUI and Langchain to deal with the LLM.\n\n## Usage\nTo use the application, run the respective  `.py`  files with the streamlit CLI (after having installed streamlit):\n\n`streamlit run app.py`\n\n### Falcon API currently experiences extended question-answering response times, averaging between 10-15 minutes. This delay may be attributed to potential server overloads on the Falcon API side.\n\n## Note There are 4 files in the folder\n\n### 1. `gpt_falcon.py`\n\nThis helps you choose between the openai and the falcon llm to do pdf question answering. Choose one of the llm and then upload the file on which you want to ask questions on. Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 56 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/a95eac4d-fd92-4024-a1ef-f3e00ec79aea\">\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 58 29 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/9fba475b-f90e-4078-bd6d-dd6029cb00f3\">\n\n### 2. `gpt_with_chunks.py`\nThis code provides the following output:\n1. **Chunks with Similar Context/Meaning as the Question**: Provides chunks of text identified with context or meaning similar to the user's question.\n2. **Top 3 Chunks Similar to the Question**: Displays the three most relevant text chunks related to the user's question.\n3. **Answer from the LLM (Language Model)**: Outputs the question's answer generated by the Language Model.\n4. **Determining 'k' Value for Each Chunk Retrieval**: Presents the 'k' value, representing the length of each retrieved text chunk.\nOutput pictures:\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 13 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/bab92d66-877a-4aba-bacf-89f7af5a5729\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 19 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/d8d0e3fe-e4f5-410b-a165-66c89c1af382\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 24 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/5faa9403-6ef1-4562-8a6c-5ef26a3b1b35\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 30 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/eb44ef4d-a6a1-4d33-b674-63c4f61e3790\">\n<img width=\"1344\" alt=\"Screenshot 2023-12-23 at 12 05 38 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/49f82c02-92ab-4640-bf2a-a594bd809345\">\n\n\n### 3. `gpt.py`\nThis code consists of the `openai` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks.Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 11 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/095957e4-d1e2-474c-98f6-5380e11209c9\">\n\n\n### 4. `falcon.py`\nThis code consists of the `falcon-7b-instruct` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks. Here is the output picture:\n<img width=\"1344\" alt=\"image\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/c2054476-c5d1-4e01-bb0f-763743c42be6\">\n\n\n"
+        }
+      }
+    ],
+    "Process File Content": [
+      {
+        "json": {
+          "filename": "README.md",
+          "path": "README.md",
+          "content": "# PDF-Question-Answering\nAskYourPDF is a powerful Python application built with Streamlit and LangChain, designed to make PDF documents interactive and easily queryable. This project leverages LangChain's capabilities, including text splitting, embeddings, and vector stores, to enhance the user experience when working with PDFs. Whether you want to perform a similarity search, retrieve top-k chunks, or submit questions to language models like OpenAI or Falcon-7B, AskYourPDF streamlines the process with an intuitive and user-friendly interface.\n\n### Note - You need OpenAI API and HuggingFace API to run this application\nStore them into a `.env` file\n\n## How it works\nUtilizing FAISS vector database, our application processes PDFs, creating vector representations of text chunks using OpenAI embeddings. These vectors are efficiently stored in FAISS, enabling quick retrieval of semantically similar chunks in response to user queries. The selected chunks are then input into a Language Model (LLM) for generating contextually relevant responses. The application uses Streamlit to create the GUI and Langchain to deal with the LLM.\n\n## Usage\nTo use the application, run the respective  `.py`  files with the streamlit CLI (after having installed streamlit):\n\n`streamlit run app.py`\n\n### Falcon API currently experiences extended question-answering response times, averaging between 10-15 minutes. This delay may be attributed to potential server overloads on the Falcon API side.\n\n## Note There are 4 files in the folder\n\n### 1. `gpt_falcon.py`\n\nThis helps you choose between the openai and the falcon llm to do pdf question answering. Choose one of the llm and then upload the file on which you want to ask questions on. Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 56 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/a95eac4d-fd92-4024-a1ef-f3e00ec79aea\">\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 58 29 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/9fba475b-f90e-4078-bd6d-dd6029cb00f3\">\n\n### 2. `gpt_with_chunks.py`\nThis code provides the following output:\n1. **Chunks with Similar Context/Meaning as the Question**: Provides chunks of text identified with context or meaning similar to the user's question.\n2. **Top 3 Chunks Similar to the Question**: Displays the three most relevant text chunks related to the user's question.\n3. **Answer from the LLM (Language Model)**: Outputs the question's answer generated by the Language Model.\n4. **Determining 'k' Value for Each Chunk Retrieval**: Presents the 'k' value, representing the length of each retrieved text chunk.\nOutput pictures:\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 13 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/bab92d66-877a-4aba-bacf-89f7af5a5729\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 19 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/d8d0e3fe-e4f5-410b-a165-66c89c1af382\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 24 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/5faa9403-6ef1-4562-8a6c-5ef26a3b1b35\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 30 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/eb44ef4d-a6a1-4d33-b674-63c4f61e3790\">\n<img width=\"1344\" alt=\"Screenshot 2023-12-23 at 12 05 38 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/49f82c02-92ab-4640-bf2a-a594bd809345\">\n\n\n### 3. `gpt.py`\nThis code consists of the `openai` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks.Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 11 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/095957e4-d1e2-474c-98f6-5380e11209c9\">\n\n\n### 4. `falcon.py`\nThis code consists of the `falcon-7b-instruct` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks. Here is the output picture:\n<img width=\"1344\" alt=\"image\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/c2054476-c5d1-4e01-bb0f-763743c42be6\">\n\n\n",
+          "size": 4379,
+          "repoMetadata": {
+            "name": "PDF-Question-Answering",
+            "fullName": "sanjay-e2m/PDF-Question-Answering",
+            "description": "PDF-Question-Answering",
+            "language": "Python",
+            "topics": [],
+            "stars": 0,
+            "forks": 0,
+            "license": "Not specified",
+            "lastUpdated": "2025-08-19T04:55:08Z",
+            "defaultBranch": "main",
+            "homepage": "",
+            "size": 12354
+          }
+        }
+      }
+    ],
+    "Aggregate All Files": [
+      {
+        "json": {
+          "data": [
+            {
+              "filename": "README.md",
+              "path": "README.md",
+              "content": "# PDF-Question-Answering\nAskYourPDF is a powerful Python application built with Streamlit and LangChain, designed to make PDF documents interactive and easily queryable. This project leverages LangChain's capabilities, including text splitting, embeddings, and vector stores, to enhance the user experience when working with PDFs. Whether you want to perform a similarity search, retrieve top-k chunks, or submit questions to language models like OpenAI or Falcon-7B, AskYourPDF streamlines the process with an intuitive and user-friendly interface.\n\n### Note - You need OpenAI API and HuggingFace API to run this application\nStore them into a `.env` file\n\n## How it works\nUtilizing FAISS vector database, our application processes PDFs, creating vector representations of text chunks using OpenAI embeddings. These vectors are efficiently stored in FAISS, enabling quick retrieval of semantically similar chunks in response to user queries. The selected chunks are then input into a Language Model (LLM) for generating contextually relevant responses. The application uses Streamlit to create the GUI and Langchain to deal with the LLM.\n\n## Usage\nTo use the application, run the respective  `.py`  files with the streamlit CLI (after having installed streamlit):\n\n`streamlit run app.py`\n\n### Falcon API currently experiences extended question-answering response times, averaging between 10-15 minutes. This delay may be attributed to potential server overloads on the Falcon API side.\n\n## Note There are 4 files in the folder\n\n### 1. `gpt_falcon.py`\n\nThis helps you choose between the openai and the falcon llm to do pdf question answering. Choose one of the llm and then upload the file on which you want to ask questions on. Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 56 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/a95eac4d-fd92-4024-a1ef-f3e00ec79aea\">\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 58 29 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/9fba475b-f90e-4078-bd6d-dd6029cb00f3\">\n\n### 2. `gpt_with_chunks.py`\nThis code provides the following output:\n1. **Chunks with Similar Context/Meaning as the Question**: Provides chunks of text identified with context or meaning similar to the user's question.\n2. **Top 3 Chunks Similar to the Question**: Displays the three most relevant text chunks related to the user's question.\n3. **Answer from the LLM (Language Model)**: Outputs the question's answer generated by the Language Model.\n4. **Determining 'k' Value for Each Chunk Retrieval**: Presents the 'k' value, representing the length of each retrieved text chunk.\nOutput pictures:\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 13 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/bab92d66-877a-4aba-bacf-89f7af5a5729\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 19 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/d8d0e3fe-e4f5-410b-a165-66c89c1af382\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 24 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/5faa9403-6ef1-4562-8a6c-5ef26a3b1b35\">\n<img width=\"1372\" alt=\"Screenshot 2023-12-23 at 12 05 30 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/eb44ef4d-a6a1-4d33-b674-63c4f61e3790\">\n<img width=\"1344\" alt=\"Screenshot 2023-12-23 at 12 05 38 PM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/49f82c02-92ab-4640-bf2a-a594bd809345\">\n\n\n### 3. `gpt.py`\nThis code consists of the `openai` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks.Here is the output picture:\n<img width=\"1370\" alt=\"Screenshot 2023-12-23 at 11 40 11 AM\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/095957e4-d1e2-474c-98f6-5380e11209c9\">\n\n\n### 4. `falcon.py`\nThis code consists of the `falcon-7b-instruct` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks. Here is the output picture:\n<img width=\"1344\" alt=\"image\" src=\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/c2054476-c5d1-4e01-bb0f-763743c42be6\">\n\n\n",
+              "size": 4379,
+              "repoMetadata": {
+                "name": "PDF-Question-Answering",
+                "fullName": "sanjay-e2m/PDF-Question-Answering",
+                "description": "PDF-Question-Answering",
+                "language": "Python",
+                "topics": [],
+                "stars": 0,
+                "forks": 0,
+                "license": "Not specified",
+                "lastUpdated": "2025-08-19T04:55:08Z",
+                "defaultBranch": "main",
+                "homepage": "",
+                "size": 12354
+              }
+            },
+            {
+              "filename": "falcon.py",
+              "path": "falcon.py",
+              "content": "from dotenv import load_dotenv\nimport streamlit as st\nfrom PyPDF2 import PdfReader\nfrom langchain.text_splitter import CharacterTextSplitter\nfrom langchain.embeddings.openai import OpenAIEmbeddings\nfrom langchain.vectorstores import FAISS\nfrom langchain.chains.question_answering import load_qa_chain\nfrom langchain.llms import HuggingFaceHub\nfrom langchain.embeddings.huggingface import HuggingFaceEmbeddings\nimport os \n\ndef main():\n    load_dotenv()\n    st.set_page_config(page_title=\"Ask your pdf\")\n    st.header(\"Ask your pdf(Falcon-7b-instruct) 🤓\")\n\n    # Uploading the file\n    pdf = st.file_uploader(\"Upload your pdf\", type=\"pdf\")\n    \n    # Extracting the text\n    if pdf is not None:\n        pdf_reader = PdfReader(pdf)\n        text = \"\"\n        for page in pdf_reader.pages:\n            text += page.extract_text()\n\n        # Split into chunks \n        text_splitter = CharacterTextSplitter(\n            separator=\"\\n\", # Defines a new line \n            chunk_size = 1000,\n            chunk_overlap = 200,\n            length_function = len\n        )\n        chunks = text_splitter.split_text(text)\n\n        # Create embeddings\n        embeddings = HuggingFaceEmbeddings()\n\n        # Creating an object on which we will be able to search FAISS\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\n\n        # show user input\n        user_question = st.text_input(\"Ask a question about the PDF: \")\n        if user_question:\n            docs = knowledge_base.similarity_search(user_question)\n\n\n            llm=HuggingFaceHub(repo_id=\"tiiuae/falcon-7b-instruct\", model_kwargs={\"temperature\":0.1, \"max_length\":512})\n\n            chain = load_qa_chain(llm, chain_type=\"stuff\")\n            response = chain.run(input_documents=docs, question = user_question)\n\n            st.write(response)\n\nif __name__ == '__main__':\n    main()\n",
+              "size": 1842,
+              "repoMetadata": {
+                "name": "PDF-Question-Answering",
+                "fullName": "sanjay-e2m/PDF-Question-Answering",
+                "description": "PDF-Question-Answering",
+                "language": "Python",
+                "topics": [],
+                "stars": 0,
+                "forks": 0,
+                "license": "Not specified",
+                "lastUpdated": "2025-08-19T04:55:08Z",
+                "defaultBranch": "main",
+                "homepage": "",
+                "size": 12354
+              }
+            },
+            {
+              "filename": "gpt.py",
+              "path": "gpt.py",
+              "content": "from dotenv import load_dotenv\nimport streamlit as st\nfrom PyPDF2 import PdfReader\nfrom langchain.text_splitter import CharacterTextSplitter\nfrom langchain.embeddings.openai import OpenAIEmbeddings\nfrom langchain.vectorstores import FAISS\nfrom langchain.chains.question_answering import load_qa_chain\nfrom langchain.llms import OpenAI\n\n\n\ndef main():\n    load_dotenv()\n    st.set_page_config(page_title=\"Ask your pdf\", layout=\"centered\",initial_sidebar_state=\"auto\")\n    st.header(\"Ask your pdf(OpenAI) 🤓\")\n    \n    # Uploading the file\n    pdf = st.file_uploader(\"Upload your pdf\", type=\"pdf\")\n    \n    # Extracting the text\n    if pdf is not None:\n        pdf_reader = PdfReader(pdf)\n        text = \"\"\n        for page in pdf_reader.pages:\n            text += page.extract_text()\n\n        # Split into chunks \n        text_splitter = CharacterTextSplitter(\n            separator=\"\\n\", # Defines a new line \n            chunk_size = 1000,\n            chunk_overlap = 200,\n            length_function = len\n        )\n        chunks = text_splitter.split_text(text)\n\n        # Create embeddings\n        embeddings = OpenAIEmbeddings()\n\n        # Creating an object on which we will be able to search FAISS\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\n\n        # show user input\n        user_question = st.text_input(\"Ask a question about the PDF: \")\n\n        if st.button(\"Refresh Page\"):\n            st.caching.clear_cache()\n            \n        if user_question:\n            docs = knowledge_base.similarity_search(user_question)\n\n            llm = OpenAI()\n            chain = load_qa_chain(llm, chain_type=\"stuff\")\n            response = chain.run(input_documents=docs, question = user_question)\n\n            st.write(response)\n\nif __name__ == '__main__':\n    main()\n",
+              "size": 1787,
+              "repoMetadata": {
+                "name": "PDF-Question-Answering",
+                "fullName": "sanjay-e2m/PDF-Question-Answering",
+                "description": "PDF-Question-Answering",
+                "language": "Python",
+                "topics": [],
+                "stars": 0,
+                "forks": 0,
+                "license": "Not specified",
+                "lastUpdated": "2025-08-19T04:55:08Z",
+                "defaultBranch": "main",
+                "homepage": "",
+                "size": 12354
+              }
+            },
+            {
+              "filename": "gpt_falcon.py",
+              "path": "gpt_falcon.py",
+              "content": "from dotenv import load_dotenv\nimport streamlit as st\nfrom PyPDF2 import PdfReader\nfrom langchain.text_splitter import CharacterTextSplitter\nfrom langchain.embeddings.openai import OpenAIEmbeddings\nfrom langchain.vectorstores import FAISS\nfrom langchain.chains.question_answering import load_qa_chain\nfrom langchain.llms import HuggingFaceHub, OpenAI\nfrom langchain.embeddings.huggingface import HuggingFaceEmbeddings\nimport os \n\ndef main():\n    load_dotenv()\n    st.set_page_config(page_title=\"Ask your pdf\")\n    st.header(\"Ask your pdf 🤓\")\n\n    # model selection\n    selected_model = st.selectbox(\"Select Language Model\", [\"OpenAI\", \"Falcon-7B\"])\n    \n    pdf = st.file_uploader(\"Upload your pdf\", type=\"pdf\")\n\n    if pdf is not None:\n        pdf_reader = PdfReader(pdf)\n        text = \"\"\n        for page in pdf_reader.pages:\n            text += page.extract_text()\n\n        text_splitter = CharacterTextSplitter(\n            separator=\"\\n\",  # Defines a new line \n            chunk_size=1000,\n            chunk_overlap=200,\n            length_function=len\n        )\n        chunks = text_splitter.split_text(text)\n\n        # Initialize embeddings to None\n        embeddings = None\n\n        if selected_model == 'OpenAI':\n            embeddings = OpenAIEmbeddings()\n            llm = OpenAI()\n        elif selected_model == 'Falcon-7B':  # Corrected model name\n            embeddings = HuggingFaceEmbeddings()\n            llm = HuggingFaceHub(repo_id=\"tiiuae/falcon-7b-instruct\", model_kwargs={\"temperature\": 0.1, \"max_length\": 512})\n        else:\n            st.error('Invalid model selection')\n\n        # Check if embeddings is not None before using it\n        if embeddings is not None:\n            knowledge_base = FAISS.from_texts(chunks, embeddings)\n\n            # show user input\n            user_question = st.text_input(\"Ask a question about the PDF: \")\n            if user_question:\n                docs = knowledge_base.similarity_search(user_question)\n\n                # Remove reinitialization of llm\n                chain = load_qa_chain(llm, chain_type=\"stuff\")\n                response = chain.run(input_documents=docs, question=user_question)\n\n                st.write(response)\n\nif __name__ == '__main__':\n    main()\n",
+              "size": 2239,
+              "repoMetadata": {
+                "name": "PDF-Question-Answering",
+                "fullName": "sanjay-e2m/PDF-Question-Answering",
+                "description": "PDF-Question-Answering",
+                "language": "Python",
+                "topics": [],
+                "stars": 0,
+                "forks": 0,
+                "license": "Not specified",
+                "lastUpdated": "2025-08-19T04:55:08Z",
+                "defaultBranch": "main",
+                "homepage": "",
+                "size": 12354
+              }
+            },
+            {
+              "filename": "gpt_with_chunks.py",
+              "path": "gpt_with_chunks.py",
+              "content": "from dotenv import load_dotenv\nimport streamlit as st\nfrom PyPDF2 import PdfReader\nfrom langchain.text_splitter import CharacterTextSplitter\nfrom langchain.embeddings.openai import OpenAIEmbeddings\nfrom langchain.vectorstores import FAISS\nfrom langchain.chains.question_answering import load_qa_chain\nfrom langchain.llms import OpenAI\n\ndef main():\n    load_dotenv()\n    st.set_page_config(page_title=\"Ask your pdf\", layout=\"centered\", initial_sidebar_state=\"auto\")\n    st.header(\"Ask your pdf(OpenAI) 🤓\")\n\n    # Uploading the file\n    pdf = st.file_uploader(\"Upload your pdf\", type=\"pdf\")\n\n    # Extracting the text\n    if pdf is not None:\n        pdf_reader = PdfReader(pdf)\n        text = \"\"\n        for page in pdf_reader.pages:\n            text += page.extract_text()\n\n        # Split into chunks\n        text_splitter = CharacterTextSplitter(\n            separator=\"\\n\",  # Defines a new line\n            chunk_size=1000,\n            chunk_overlap=200,\n            length_function=len\n        )\n        chunks = text_splitter.split_text(text)\n\n        # Create embeddings\n        embeddings = OpenAIEmbeddings()\n\n        # Creating an object on which we will be able to search FAISS\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\n\n        # show user input\n        user_question = st.text_input(\"Ask a question about the PDF: \")\n\n        # if st.button(\"Refresh Page\"):\n        #     st.caching.clear_cache()\n\n        similar_chunks = []  # Initialize outside the if block\n\n        if user_question:\n            # 1. Similarity search on the vectorstore\n            similar_chunks = knowledge_base.similarity_search(user_question)\n\n        # Continue processing only if user_question is not empty\n        if user_question:\n            # 2. Retrieve the top k chunks (you can adjust k as needed)\n            k = 3\n            top_k_chunks = similar_chunks[:k]\n\n            # 3. Submit relevant chunks and the original question to the LLM\n            llm = OpenAI()\n            chain = load_qa_chain(llm, chain_type=\"stuff\")\n            response = chain.run(input_documents=top_k_chunks, question=user_question)\n\n            # 4. Determine 'k' value for each chunk retrieval\n            k_values = [len(str(chunk)) for chunk in top_k_chunks]\n\n            # Display results\n            st.subheader(\"Similarity Search Results:\")\n            st.write(\"Chunks with similar context/meaning as the question:\")\n            for i, chunk in enumerate(similar_chunks):\n                st.write(f\"Chunk {i + 1}:\", chunk)\n\n            st.subheader(\"Top {} Chunks Similar to the Question:\".format(k))\n            for i, chunk in enumerate(top_k_chunks):\n                st.write(f\"Chunk {i + 1}:\", chunk)\n\n            st.subheader(\"Answer from LLM:\")\n            st.write(response)\n\n            st.subheader(\"Determine 'k' value for each chunk retrieval:\")\n            for i, k_value in enumerate(k_values):\n                st.write(f\"Chunk {i + 1}: {k_value}\")\n\nif __name__ == '__main__':\n    main()\n",
+              "size": 3008,
+              "repoMetadata": {
+                "name": "PDF-Question-Answering",
+                "fullName": "sanjay-e2m/PDF-Question-Answering",
+                "description": "PDF-Question-Answering",
+                "language": "Python",
+                "topics": [],
+                "stars": 0,
+                "forks": 0,
+                "license": "Not specified",
+                "lastUpdated": "2025-08-19T04:55:08Z",
+                "defaultBranch": "main",
+                "homepage": "",
+                "size": 12354
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "Prepare Data for AI": [
+      {
+        "json": {
+          "data": "{\n  \"repository\": {\n    \"name\": \"PDF-Question-Answering\",\n    \"fullName\": \"sanjay-e2m/PDF-Question-Answering\",\n    \"description\": \"PDF-Question-Answering\",\n    \"primaryLanguage\": \"Python\",\n    \"topics\": [],\n    \"statistics\": {\n      \"stars\": 0,\n      \"forks\": 0,\n      \"size\": 12354\n    },\n    \"lastUpdated\": \"2025-08-19T04:55:08Z\",\n    \"license\": \"Not specified\",\n    \"homepage\": \"\"\n  },\n  \"files\": [\n    {\n      \"filename\": \"README.md\",\n      \"path\": \"README.md\",\n      \"content\": \"# PDF-Question-Answering\\nAskYourPDF is a powerful Python application built with Streamlit and LangChain, designed to make PDF documents interactive and easily queryable. This project leverages LangChain's capabilities, including text splitting, embeddings, and vector stores, to enhance the user experience when working with PDFs. Whether you want to perform a similarity search, retrieve top-k chunks, or submit questions to language models like OpenAI or Falcon-7B, AskYourPDF streamlines the process with an intuitive and user-friendly interface.\\n\\n### Note - You need OpenAI API and HuggingFace API to run this application\\nStore them into a `.env` file\\n\\n## How it works\\nUtilizing FAISS vector database, our application processes PDFs, creating vector representations of text chunks using OpenAI embeddings. These vectors are efficiently stored in FAISS, enabling quick retrieval of semantically similar chunks in response to user queries. The selected chunks are then input into a Language Model (LLM) for generating contextually relevant responses. The application uses Streamlit to create the GUI and Langchain to deal with the LLM.\\n\\n## Usage\\nTo use the application, run the respective  `.py`  files with the streamlit CLI (after having installed streamlit):\\n\\n`streamlit run app.py`\\n\\n### Falcon API currently experiences extended question-answering response times, averaging between 10-15 minutes. This delay may be attributed to potential server overloads on the Falcon API side.\\n\\n## Note There are 4 files in the folder\\n\\n### 1. `gpt_falcon.py`\\n\\nThis helps you choose between the openai and the falcon llm to do pdf question answering. Choose one of the llm and then upload the file on which you want to ask questions on. Here is the output picture:\\n<img width=\\\"1370\\\" alt=\\\"Screenshot 2023-12-23 at 11 40 56 AM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/a95eac4d-fd92-4024-a1ef-f3e00ec79aea\\\">\\n<img width=\\\"1370\\\" alt=\\\"Screenshot 2023-12-23 at 11 58 29 AM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/9fba475b-f90e-4078-bd6d-dd6029cb00f3\\\">\\n\\n### 2. `gpt_with_chunks.py`\\nThis code provides the following output:\\n1. **Chunks with Similar Context/Meaning as the Question**: Provides chunks of text identified with context or meaning similar to the user's question.\\n2. **Top 3 Chunks Similar to the Question**: Displays the three most relevant text chunks related to the user's question.\\n3. **Answer from the LLM (Language Model)**: Outputs the question's answer generated by the Language Model.\\n4. **Determining 'k' Value for Each Chunk Retrieval**: Presents the 'k' value, representing the length of each retrieved text chunk.\\nOutput pictures:\\n<img width=\\\"1372\\\" alt=\\\"Screenshot 2023-12-23 at 12 05 13 PM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/bab92d66-877a-4aba-bacf-89f7af5a5729\\\">\\n<img width=\\\"1372\\\" alt=\\\"Screenshot 2023-12-23 at 12 05 19 PM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/d8d0e3fe-e4f5-410b-a165-66c89c1af382\\\">\\n<img width=\\\"1372\\\" alt=\\\"Screenshot 2023-12-23 at 12 05 24 PM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/5faa9403-6ef1-4562-8a6c-5ef26a3b1b35\\\">\\n<img width=\\\"1372\\\" alt=\\\"Screenshot 2023-12-23 at 12 05 30 PM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/eb44ef4d-a6a1-4d33-b674-63c4f61e3790\\\">\\n<img width=\\\"1344\\\" alt=\\\"Screenshot 2023-12-23 at 12 05 38 PM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/49f82c02-92ab-4640-bf2a-a594bd809345\\\">\\n\\n\\n### 3. `gpt.py`\\nThis code consists of the `openai` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks.Here is the output picture:\\n<img width=\\\"1370\\\" alt=\\\"Screenshot 2023-12-23 at 11 40 11 AM\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/095957e4-d1e2-474c-98f6-5380e11209c9\\\">\\n\\n\\n### 4. `falcon.py`\\nThis code consists of the `falcon-7b-instruct` llm to do question answering. This does **not** consists of answering chunks with similar meaning or determining the k value of each chunks. Here is the output picture:\\n<img width=\\\"1344\\\" alt=\\\"image\\\" src=\\\"https://github.com/rahulsharma00/PDF-Question-Answering/assets/89294054/c2054476-c5d1-4e01-bb0f-763743c42be6\\\">\\n\\n\\n\",\n      \"size\": 4379\n    },\n    {\n      \"filename\": \"falcon.py\",\n      \"path\": \"falcon.py\",\n      \"content\": \"from dotenv import load_dotenv\\nimport streamlit as st\\nfrom PyPDF2 import PdfReader\\nfrom langchain.text_splitter import CharacterTextSplitter\\nfrom langchain.embeddings.openai import OpenAIEmbeddings\\nfrom langchain.vectorstores import FAISS\\nfrom langchain.chains.question_answering import load_qa_chain\\nfrom langchain.llms import HuggingFaceHub\\nfrom langchain.embeddings.huggingface import HuggingFaceEmbeddings\\nimport os \\n\\ndef main():\\n    load_dotenv()\\n    st.set_page_config(page_title=\\\"Ask your pdf\\\")\\n    st.header(\\\"Ask your pdf(Falcon-7b-instruct) 🤓\\\")\\n\\n    # Uploading the file\\n    pdf = st.file_uploader(\\\"Upload your pdf\\\", type=\\\"pdf\\\")\\n    \\n    # Extracting the text\\n    if pdf is not None:\\n        pdf_reader = PdfReader(pdf)\\n        text = \\\"\\\"\\n        for page in pdf_reader.pages:\\n            text += page.extract_text()\\n\\n        # Split into chunks \\n        text_splitter = CharacterTextSplitter(\\n            separator=\\\"\\\\n\\\", # Defines a new line \\n            chunk_size = 1000,\\n            chunk_overlap = 200,\\n            length_function = len\\n        )\\n        chunks = text_splitter.split_text(text)\\n\\n        # Create embeddings\\n        embeddings = HuggingFaceEmbeddings()\\n\\n        # Creating an object on which we will be able to search FAISS\\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\\n\\n        # show user input\\n        user_question = st.text_input(\\\"Ask a question about the PDF: \\\")\\n        if user_question:\\n            docs = knowledge_base.similarity_search(user_question)\\n\\n\\n            llm=HuggingFaceHub(repo_id=\\\"tiiuae/falcon-7b-instruct\\\", model_kwargs={\\\"temperature\\\":0.1, \\\"max_length\\\":512})\\n\\n            chain = load_qa_chain(llm, chain_type=\\\"stuff\\\")\\n            response = chain.run(input_documents=docs, question = user_question)\\n\\n            st.write(response)\\n\\nif __name__ == '__main__':\\n    main()\\n\",\n      \"size\": 1842\n    },\n    {\n      \"filename\": \"gpt.py\",\n      \"path\": \"gpt.py\",\n      \"content\": \"from dotenv import load_dotenv\\nimport streamlit as st\\nfrom PyPDF2 import PdfReader\\nfrom langchain.text_splitter import CharacterTextSplitter\\nfrom langchain.embeddings.openai import OpenAIEmbeddings\\nfrom langchain.vectorstores import FAISS\\nfrom langchain.chains.question_answering import load_qa_chain\\nfrom langchain.llms import OpenAI\\n\\n\\n\\ndef main():\\n    load_dotenv()\\n    st.set_page_config(page_title=\\\"Ask your pdf\\\", layout=\\\"centered\\\",initial_sidebar_state=\\\"auto\\\")\\n    st.header(\\\"Ask your pdf(OpenAI) 🤓\\\")\\n    \\n    # Uploading the file\\n    pdf = st.file_uploader(\\\"Upload your pdf\\\", type=\\\"pdf\\\")\\n    \\n    # Extracting the text\\n    if pdf is not None:\\n        pdf_reader = PdfReader(pdf)\\n        text = \\\"\\\"\\n        for page in pdf_reader.pages:\\n            text += page.extract_text()\\n\\n        # Split into chunks \\n        text_splitter = CharacterTextSplitter(\\n            separator=\\\"\\\\n\\\", # Defines a new line \\n            chunk_size = 1000,\\n            chunk_overlap = 200,\\n            length_function = len\\n        )\\n        chunks = text_splitter.split_text(text)\\n\\n        # Create embeddings\\n        embeddings = OpenAIEmbeddings()\\n\\n        # Creating an object on which we will be able to search FAISS\\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\\n\\n        # show user input\\n        user_question = st.text_input(\\\"Ask a question about the PDF: \\\")\\n\\n        if st.button(\\\"Refresh Page\\\"):\\n            st.caching.clear_cache()\\n            \\n        if user_question:\\n            docs = knowledge_base.similarity_search(user_question)\\n\\n            llm = OpenAI()\\n            chain = load_qa_chain(llm, chain_type=\\\"stuff\\\")\\n            response = chain.run(input_documents=docs, question = user_question)\\n\\n            st.write(response)\\n\\nif __name__ == '__main__':\\n    main()\\n\",\n      \"size\": 1787\n    },\n    {\n      \"filename\": \"gpt_falcon.py\",\n      \"path\": \"gpt_falcon.py\",\n      \"content\": \"from dotenv import load_dotenv\\nimport streamlit as st\\nfrom PyPDF2 import PdfReader\\nfrom langchain.text_splitter import CharacterTextSplitter\\nfrom langchain.embeddings.openai import OpenAIEmbeddings\\nfrom langchain.vectorstores import FAISS\\nfrom langchain.chains.question_answering import load_qa_chain\\nfrom langchain.llms import HuggingFaceHub, OpenAI\\nfrom langchain.embeddings.huggingface import HuggingFaceEmbeddings\\nimport os \\n\\ndef main():\\n    load_dotenv()\\n    st.set_page_config(page_title=\\\"Ask your pdf\\\")\\n    st.header(\\\"Ask your pdf 🤓\\\")\\n\\n    # model selection\\n    selected_model = st.selectbox(\\\"Select Language Model\\\", [\\\"OpenAI\\\", \\\"Falcon-7B\\\"])\\n    \\n    pdf = st.file_uploader(\\\"Upload your pdf\\\", type=\\\"pdf\\\")\\n\\n    if pdf is not None:\\n        pdf_reader = PdfReader(pdf)\\n        text = \\\"\\\"\\n        for page in pdf_reader.pages:\\n            text += page.extract_text()\\n\\n        text_splitter = CharacterTextSplitter(\\n            separator=\\\"\\\\n\\\",  # Defines a new line \\n            chunk_size=1000,\\n            chunk_overlap=200,\\n            length_function=len\\n        )\\n        chunks = text_splitter.split_text(text)\\n\\n        # Initialize embeddings to None\\n        embeddings = None\\n\\n        if selected_model == 'OpenAI':\\n            embeddings = OpenAIEmbeddings()\\n            llm = OpenAI()\\n        elif selected_model == 'Falcon-7B':  # Corrected model name\\n            embeddings = HuggingFaceEmbeddings()\\n            llm = HuggingFaceHub(repo_id=\\\"tiiuae/falcon-7b-instruct\\\", model_kwargs={\\\"temperature\\\": 0.1, \\\"max_length\\\": 512})\\n        else:\\n            st.error('Invalid model selection')\\n\\n        # Check if embeddings is not None before using it\\n        if embeddings is not None:\\n            knowledge_base = FAISS.from_texts(chunks, embeddings)\\n\\n            # show user input\\n            user_question = st.text_input(\\\"Ask a question about the PDF: \\\")\\n            if user_question:\\n                docs = knowledge_base.similarity_search(user_question)\\n\\n                # Remove reinitialization of llm\\n                chain = load_qa_chain(llm, chain_type=\\\"stuff\\\")\\n                response = chain.run(input_documents=docs, question=user_question)\\n\\n                st.write(response)\\n\\nif __name__ == '__main__':\\n    main()\\n\",\n      \"size\": 2239\n    },\n    {\n      \"filename\": \"gpt_with_chunks.py\",\n      \"path\": \"gpt_with_chunks.py\",\n      \"content\": \"from dotenv import load_dotenv\\nimport streamlit as st\\nfrom PyPDF2 import PdfReader\\nfrom langchain.text_splitter import CharacterTextSplitter\\nfrom langchain.embeddings.openai import OpenAIEmbeddings\\nfrom langchain.vectorstores import FAISS\\nfrom langchain.chains.question_answering import load_qa_chain\\nfrom langchain.llms import OpenAI\\n\\ndef main():\\n    load_dotenv()\\n    st.set_page_config(page_title=\\\"Ask your pdf\\\", layout=\\\"centered\\\", initial_sidebar_state=\\\"auto\\\")\\n    st.header(\\\"Ask your pdf(OpenAI) 🤓\\\")\\n\\n    # Uploading the file\\n    pdf = st.file_uploader(\\\"Upload your pdf\\\", type=\\\"pdf\\\")\\n\\n    # Extracting the text\\n    if pdf is not None:\\n        pdf_reader = PdfReader(pdf)\\n        text = \\\"\\\"\\n        for page in pdf_reader.pages:\\n            text += page.extract_text()\\n\\n        # Split into chunks\\n        text_splitter = CharacterTextSplitter(\\n            separator=\\\"\\\\n\\\",  # Defines a new line\\n            chunk_size=1000,\\n            chunk_overlap=200,\\n            length_function=len\\n        )\\n        chunks = text_splitter.split_text(text)\\n\\n        # Create embeddings\\n        embeddings = OpenAIEmbeddings()\\n\\n        # Creating an object on which we will be able to search FAISS\\n        knowledge_base = FAISS.from_texts(chunks, embeddings)\\n\\n        # show user input\\n        user_question = st.text_input(\\\"Ask a question about the PDF: \\\")\\n\\n        # if st.button(\\\"Refresh Page\\\"):\\n        #     st.caching.clear_cache()\\n\\n        similar_chunks = []  # Initialize outside the if block\\n\\n        if user_question:\\n            # 1. Similarity search on the vectorstore\\n            similar_chunks = knowledge_base.similarity_search(user_question)\\n\\n        # Continue processing only if user_question is not empty\\n        if user_question:\\n            # 2. Retrieve the top k chunks (you can adjust k as needed)\\n            k = 3\\n            top_k_chunks = similar_chunks[:k]\\n\\n            # 3. Submit relevant chunks and the original question to the LLM\\n            llm = OpenAI()\\n            chain = load_qa_chain(llm, chain_type=\\\"stuff\\\")\\n            response = chain.run(input_documents=top_k_chunks, question=user_question)\\n\\n            # 4. Determine 'k' value for each chunk retrieval\\n            k_values = [len(str(chunk)) for chunk in top_k_chunks]\\n\\n            # Display results\\n            st.subheader(\\\"Similarity Search Results:\\\")\\n            st.write(\\\"Chunks with similar context/meaning as the question:\\\")\\n            for i, chunk in enumerate(similar_chunks):\\n                st.write(f\\\"Chunk {i + 1}:\\\", chunk)\\n\\n            st.subheader(\\\"Top {} Chunks Similar to the Question:\\\".format(k))\\n            for i, chunk in enumerate(top_k_chunks):\\n                st.write(f\\\"Chunk {i + 1}:\\\", chunk)\\n\\n            st.subheader(\\\"Answer from LLM:\\\")\\n            st.write(response)\\n\\n            st.subheader(\\\"Determine 'k' value for each chunk retrieval:\\\")\\n            for i, k_value in enumerate(k_values):\\n                st.write(f\\\"Chunk {i + 1}: {k_value}\\\")\\n\\nif __name__ == '__main__':\\n    main()\\n\",\n      \"size\": 3008\n    }\n  ],\n  \"summary\": {\n    \"totalFiles\": 5,\n    \"totalSize\": 13255,\n    \"fileTypes\": [\n      \"md\",\n      \"py\"\n    ]\n  }\n}"
+        }
+      }
+    ],
+    "Generate Documentation": [
+      {
+        "json": {
+          "content": {
+            "parts": [
+              {
+                "text": "```markdown\n# PDF-Question-Answering Documentation\n\n## 1. Executive Summary\n\nThis project, named \"PDF-Question-Answering,\" provides a set of Python applications that allow users to query PDF documents using Language Models (LLMs). Built with Streamlit and LangChain, the applications leverage techniques like text splitting, embeddings, and vector stores (FAISS) to enable efficient question answering on PDF content. The repository includes different versions of the application utilizing OpenAI's and HuggingFace's Falcon-7B models. The project aims to provide an intuitive and user-friendly interface for interacting with PDF documents.  The project is currently functional, but response times for the Falcon-7B model are noted to be potentially slow.\n\n**Key Features:**\n\n*   **PDF Ingestion and Processing:** Extracts text from uploaded PDF documents.\n*   **Text Chunking:** Splits the extracted text into manageable chunks.\n*   **Embedding Generation:** Creates vector embeddings for each chunk using OpenAI or HuggingFace models.\n*   **Vector Storage (FAISS):** Stores embeddings in a FAISS vector database for efficient similarity search.\n*   **Question Answering:** Allows users to ask questions about the PDF content and receives answers generated by an LLM.\n*   **Multiple LLM Support:**  Includes implementations using both OpenAI and Falcon-7B models.\n*   **Streamlit Interface:**  Provides a user-friendly web interface for interacting with the application.\n*   **Chunk Retrieval:** Can retrieve and display relevant text chunks based on user queries.\n\n**Status:** Functional, with potential performance issues related to the Falcon-7B model's API.\n\n## 2. Technical Architecture\n\nThe PDF-Question-Answering application employs the following technology stack and architecture:\n\n*   **Programming Language:** Python\n*   **Libraries and Frameworks:**\n    *   Streamlit: For building the web interface.\n    *   LangChain: For LLM integration, text splitting, embedding generation, and vector store management.\n    *   PyPDF2: For reading and extracting text from PDF documents.\n    *   FAISS (integrated via LangChain): For vector storage and similarity search.\n    *   dotenv: For managing API keys.\n*   **LLMs:**\n    *   OpenAI (via OpenAI API): `gpt.py`, `gpt_falcon.py`, `gpt_with_chunks.py`\n    *   Hugging Face's Falcon-7B (via HuggingFace Hub): `falcon.py`, `gpt_falcon.py`\n*   **Embeddings:**\n    *   OpenAI Embeddings (via OpenAI API): `gpt.py`, `gpt_falcon.py`, `gpt_with_chunks.py`\n    *   HuggingFaceEmbeddings (for Falcon-7B): `falcon.py`, `gpt_falcon.py`\n*   **.env file:** Contains API keys for OpenAI and Hugging Face.\n\n**Workflow:**\n\n1.  **PDF Upload:** The user uploads a PDF document through the Streamlit interface.\n2.  **Text Extraction:** The `PyPDF2` library extracts text from the PDF.\n3.  **Text Splitting:** The `CharacterTextSplitter` from LangChain divides the extracted text into smaller chunks.\n4.  **Embedding Generation:**  Embeddings are generated for each text chunk using either `OpenAIEmbeddings` or `HuggingFaceEmbeddings`, depending on the selected LLM.\n5.  **Vector Storage:** The embeddings are stored in a FAISS (Facebook AI Similarity Search) vector database.\n6.  **Question Input:** The user enters a question via the Streamlit interface.\n7.  **Similarity Search:** The application performs a similarity search in the FAISS database to find the most relevant text chunks.\n8.  **LLM Query:**  The relevant text chunks and the user's question are fed to either the OpenAI or Falcon-7B LLM.\n9.  **Response Generation:** The LLM generates an answer based on the provided context.\n10. **Response Display:** The generated answer is displayed to the user in the Streamlit interface.\n\n**Dependencies:**\n\n*   Python 3.6+\n*   `streamlit`\n*   `langchain`\n*   `PyPDF2`\n*   `faiss-cpu` (or `faiss-gpu` if using GPU)\n*   `python-dotenv`\n*   `openai` (if using OpenAI models)\n*   `huggingface_hub` (if using Falcon-7B)\n*   `transformers` (if using HuggingFace models)\n\n## 3. Project Structure\n\nThe repository contains the following files:\n\n*   `README.md`: Provides a general overview of the project and usage instructions.\n*   `falcon.py`: Contains the implementation for question answering using the Falcon-7B LLM.\n*   `gpt.py`: Contains the implementation for question answering using the OpenAI LLM.\n*   `gpt_falcon.py`: Allows users to select between OpenAI and Falcon-7B LLMs for question answering.\n*   `gpt_with_chunks.py`: Provides question answering with OpenAI LLM and displays the most similar text chunks and the \"k\" value (length) of those chunks.\n\n**Core Components:**\n\n*   **LLM Integration:**  The core logic for interacting with either OpenAI's or HuggingFace's LLMs, facilitated by LangChain.\n*   **Vector Database:** The FAISS vector database handles the storage and retrieval of text embeddings for efficient similarity search.\n*   **Streamlit UI:** Provides the user interface for uploading PDF documents, entering questions, and displaying answers.\n*   **Text Processing:**  The text splitting and embedding generation components ensure that the PDF content is properly processed before being fed to the LLM.\n\n## 4. Installation Guide\n\nFollow these steps to set up and run the PDF-Question-Answering application:\n\n**Prerequisites:**\n\n*   Python 3.6 or higher.\n*   An OpenAI API key (if using OpenAI models).\n*   A Hugging Face API key (if using Falcon-7B).\n*   Git (recommended for cloning the repository)\n\n**Setup Steps:**\n\n1.  **Clone the Repository (Optional):**\n    ```bash\n    git clone https://github.com/sanjay-e2m/PDF-Question-Answering.git\n    cd PDF-Question-Answering\n    ```\n\n2.  **Create a Virtual Environment (Recommended):**\n    ```bash\n    python3 -m venv venv\n    source venv/bin/activate  # On Linux/macOS\n    venv\\Scripts\\activate  # On Windows\n    ```\n\n3.  **Install Dependencies:**\n    ```bash\n    pip install streamlit langchain PyPDF2 faiss-cpu python-dotenv openai huggingface_hub transformers\n    ```\n    **Note:** If you want to use the GPU version of FAISS, replace `faiss-cpu` with `faiss-gpu`.\n\n4.  **Configure API Keys:**\n    Create a `.env` file in the root directory of the project and add your OpenAI and Hugging Face API keys:\n\n    ```\n    OPENAI_API_KEY=\"YOUR_OPENAI_API_KEY\"\n    HUGGINGFACEHUB_API_TOKEN=\"YOUR_HUGGINGFACE_API_TOKEN\"\n    ```\n    Replace `\"YOUR_OPENAI_API_KEY\"` and `\"YOUR_HUGGINGFACE_API_TOKEN\"` with your actual API keys.\n\n5.  **Run the Application:**\n    Choose one of the `.py` files (e.g., `gpt.py`, `falcon.py`, `gpt_falcon.py`, or `gpt_with_chunks.py`) and run it using Streamlit:\n\n    ```bash\n    streamlit run gpt.py\n    ```\n    Replace `gpt.py` with the name of the file you want to run.\n\n**Verification:**\n\n*   The Streamlit application should open in your web browser.\n*   You should be able to upload a PDF file, enter a question, and receive an answer from the LLM.\n*   Check the console output for any errors or warnings.\n\n## 5. Usage Documentation\n\n**Basic Operations:**\n\n1.  **Upload a PDF:** Click the \"Browse files\" button and select a PDF file from your computer.\n2.  **Enter a Question:** Type your question about the PDF document in the text input field.\n3.  **Submit the Question:**  If there's a submit button (some versions have one and some don't require it), click it.  Otherwise, the question will automatically be processed.\n4.  **View the Answer:** The LLM-generated answer will be displayed below the question input field.\n5.  **Choose Model (gpt_falcon.py):**  Select either OpenAI or Falcon-7B LLM via the dropdown.\n6.  **Refresh (gpt.py, gpt_with_chunks.py):**  May have a \"Refresh Page\" button, but the streamlit caching is commented out in `gpt_with_chunks.py` so is unlikely to work.\n\n**Configuration:**\n\n*   The primary configuration is through the `.env` file, where you specify your API keys.\n*   Within the code, you can adjust parameters such as:\n    *   `chunk_size`:  The size of the text chunks (default: 1000 characters).  Located in the `CharacterTextSplitter`.\n    *   `chunk_overlap`: The amount of overlap between text chunks (default: 200 characters). Located in the `CharacterTextSplitter`.\n    *   `temperature`: The temperature parameter for the LLM (controls the randomness of the output, only for `Falcon-7B`). Located in `HuggingFaceHub`'s `model_kwargs`.\n    *   `max_length`: The maximum length of the generated response (only for `Falcon-7B`).  Located in `HuggingFaceHub`'s `model_kwargs`.\n    *   `k`: The number of top chunks to retrieve (in `gpt_with_chunks.py`).\n\n**Examples:**\n\n*   **Using `gpt.py` (OpenAI):**\n    1.  Upload a research paper in PDF format.\n    2.  Ask: \"What are the main findings of this paper?\"\n    3.  The application will use OpenAI to provide an answer based on the content of the PDF.\n\n*   **Using `falcon.py` (Falcon-7B):**\n    1.  Upload a textbook chapter in PDF format.\n    2.  Ask: \"Explain the concept of [specific concept from the chapter].\"\n    3.  The application will use Falcon-7B to provide an explanation.  Be aware that response times may be very long.\n\n*   **Using `gpt_falcon.py` (LLM Selection):**\n    1.  Upload a PDF document.\n    2.  Select either \"OpenAI\" or \"Falcon-7B\" from the dropdown.\n    3.  Ask a question and get an answer based on the selected model.\n\n*   **Using `gpt_with_chunks.py` (Chunk Display):**\n    1.  Upload a PDF document.\n    2.  Ask: \"Summarize the key arguments presented in this text.\"\n    3.  The application will display:\n        *   Chunks with similar context/meaning as the question.\n        *   Top 3 chunks most similar to the question.\n        *   The answer from the OpenAI LLM.\n        *   The length (\"k\" value) of each retrieved chunk.\n\n## 6. API Documentation\n\nThis project does not expose a public API. The interaction with OpenAI and Hugging Face LLMs is handled internally through their respective Python libraries.  Therefore, there are no API endpoints to document. The application is intended to be used through its Streamlit interface.\n\n## 7. Development Guidelines\n\n**Code Standards:**\n\n*   Follow PEP 8 style guidelines for Python code.\n*   Use meaningful variable and function names.\n*   Add comments to explain complex logic.\n*   Keep functions short and focused.\n\n**Testing:**\n\n*   Currently, no formal unit tests are included.  It is recommended to add unit tests using a framework like `pytest` to ensure the reliability of core components such as text splitting, embedding generation, and FAISS interaction.\n*   Manual testing is essential to verify the functionality of the Streamlit interface and the accuracy of the LLM responses.\n\n**Workflow:**\n\n1.  **Fork the repository.**\n2.  **Create a new branch for your feature or bug fix.**\n3.  **Implement your changes.**\n4.  **Test your changes thoroughly.**\n5.  **Commit your changes with descriptive commit messages.**\n6.  **Push your branch to your forked repository.**\n7.  **Create a pull request to the main repository.**\n\n**Contribution Guidelines:**\n\n*   All contributions are welcome.\n*   Ensure your code adheres to the code standards.\n*   Provide clear and concise descriptions of your changes in your pull request.\n*   Be responsive to feedback and address any issues raised during code review.\n\n## 8. Troubleshooting\n\n**Common Issues and Solutions:**\n\n*   **`ModuleNotFoundError: No module named 'streamlit'`:**\n    *   Solution: Make sure you have installed Streamlit: `pip install streamlit`. Also, make sure your virtual environment is activated.\n\n*   **`ModuleNotFoundError: No module named 'langchain'`:**\n    *   Solution: Make sure you have installed LangChain: `pip install langchain`. Also, make sure your virtual environment is activated.\n\n*   **`ModuleNotFoundError: No module named 'PyPDF2'`:**\n    *   Solution: Make sure you have installed PyPDF2: `pip install PyPDF2`. Also, make sure your virtual environment is activated.\n\n*   **`openai.error.AuthenticationError: No API key provided.`:**\n    *   Solution: Ensure that you have set the `OPENAI_API_KEY` environment variable correctly in your `.env` file.\n\n*   **`HuggingFaceHub.AuthenticationError:  You are trying to access a gated repo.`:**\n    *   Solution: Ensure you have a Hugging Face account and an API token, and that you've set the `HUGGINGFACEHUB_API_TOKEN` environment variable in your `.env` file.  You may also need to request access to the `tiiuae/falcon-7b-instruct` model on the Hugging Face website.\n\n*   **Slow Response Times with Falcon-7B:**\n    *   This is a known issue, likely due to server overload on the Hugging Face API side.  There is no immediate solution other than to wait or try again later. Consider using the OpenAI model if response time is critical.\n\n*   **FAISS issues**\n    *   Ensure you have installed the correct FAISS version (CPU or GPU). Conflicts can occur if the incorrect version is installed.\n\n*   **Application freezes or crashes:**\n    *   This could be due to large PDF files or memory limitations.  Try using smaller PDF files, or increase the chunk size and chunk overlap parameters to reduce memory consumption.\n\n*   **Inaccurate or irrelevant answers:**\n    *   This can be due to limitations in the LLM or the quality of the extracted text.  Try adjusting the `temperature` parameter (for Falcon-7B) or experiment with different chunk sizes and overlap values to improve the context provided to the LLM. Also, make sure the API keys are valid.\n\n## 9. Maintenance\n\n**Regular Tasks:**\n\n*   **Dependency Updates:** Regularly update the project's dependencies to ensure compatibility and security. Use `pip freeze > requirements.txt` to update the `requirements.txt` and track dependencies.\n*   **Code Review:** Review and merge pull requests from contributors.\n*   **Bug Fixes:** Address any reported bugs or issues.\n*   **Performance Optimization:** Continuously monitor and optimize the performance of the application, especially response times.\n*   **LLM Updates:**  Stay informed about updates to the OpenAI and Hugging Face models and update the code accordingly.\n\n**Version History:**\n\n*   *Initial Release:* Includes basic functionality for question answering on PDFs using OpenAI and Falcon-7B models.\n*   *Future Enhancements:*\n    *   Implement unit tests.\n    *   Add support for other LLMs.\n    *   Improve the accuracy and relevance of the LLM responses.\n    *   Implement caching to reduce API usage and improve response times.\n    *   Add more sophisticated text processing techniques.\n    *   Implement a more robust error handling mechanism.\n\n**Support Channels:**\n\n*   GitHub Issues: For reporting bugs, requesting features, and asking questions.\n*   Pull Requests: For submitting code contributions.\n\n## 10. Legal Information\n\n**License:**\n\nThis project has not specified a license.  This means that the default copyright laws apply.  You do not have the right to use, modify, or distribute the code.  It is highly recommended that the project owner add an open-source license like MIT or Apache 2.0 to allow others to use and contribute to the project.\n\n**Copyright:**\n\nCopyright (c) 2025 sanjay-e2m.\n\n**Security Policy:**\n\nGiven that this application handles user-uploaded PDF documents and interacts with external APIs, the following security considerations should be addressed:\n\n*   **Input Validation:** Sanitize and validate user inputs (especially PDF uploads and questions) to prevent code injection or cross-site scripting (XSS) attacks.\n*   **API Key Security:** Protect API keys and avoid hardcoding them directly in the code. Use environment variables or a secure configuration management system.\n*   **Rate Limiting:** Implement rate limiting to prevent abuse of the OpenAI and Hugging Face APIs.\n*   **Dependency Management:** Regularly update dependencies to address known security vulnerabilities.\n*   **Data Storage:** If any data is stored (e.g., cached embeddings), ensure it is properly secured and encrypted.\n*   **PDF Processing:**  Be aware of potential vulnerabilities in PDF parsing libraries (PyPDF2) and keep them updated. Consider using a sandboxed environment for processing untrusted PDF files.\n```"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -0.2622835843355863
+        }
+      }
+    ],
+    "Merge": [
+      {
+        "json": {
+          "id": 1040031393,
+          "node_id": "R_kgDOPf2eoQ",
+          "name": "PDF-Question-Answering",
+          "full_name": "sanjay-e2m/PDF-Question-Answering",
+          "private": false,
+          "owner": {
+            "login": "sanjay-e2m",
+            "id": 224560819,
+            "node_id": "U_kgDODWKGsw",
+            "avatar_url": "https://avatars.githubusercontent.com/u/224560819?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/sanjay-e2m",
+            "html_url": "https://github.com/sanjay-e2m",
+            "followers_url": "https://api.github.com/users/sanjay-e2m/followers",
+            "following_url": "https://api.github.com/users/sanjay-e2m/following{/other_user}",
+            "gists_url": "https://api.github.com/users/sanjay-e2m/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/sanjay-e2m/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/sanjay-e2m/subscriptions",
+            "organizations_url": "https://api.github.com/users/sanjay-e2m/orgs",
+            "repos_url": "https://api.github.com/users/sanjay-e2m/repos",
+            "events_url": "https://api.github.com/users/sanjay-e2m/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/sanjay-e2m/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/sanjay-e2m/PDF-Question-Answering",
+          "description": "PDF-Question-Answering",
+          "fork": false,
+          "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering",
+          "forks_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/forks",
+          "collaborators_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/teams",
+          "hooks_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/hooks",
+          "issue_events_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/events",
+          "assignees_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/tags",
+          "blobs_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/languages",
+          "stargazers_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/stargazers",
+          "contributors_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/contributors",
+          "subscribers_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/subscribers",
+          "subscription_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/subscription",
+          "commits_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/merges",
+          "archive_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/downloads",
+          "issues_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/labels{/name}",
+          "releases_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/deployments",
+          "created_at": "2025-08-18T11:00:01Z",
+          "updated_at": "2025-08-19T04:55:08Z",
+          "pushed_at": "2025-08-19T04:55:05Z",
+          "git_url": "git://github.com/sanjay-e2m/PDF-Question-Answering.git",
+          "ssh_url": "git@github.com:sanjay-e2m/PDF-Question-Answering.git",
+          "clone_url": "https://github.com/sanjay-e2m/PDF-Question-Answering.git",
+          "svn_url": "https://github.com/sanjay-e2m/PDF-Question-Answering",
+          "homepage": null,
+          "size": 12354,
+          "stargazers_count": 0,
+          "watchers_count": 0,
+          "language": "Python",
+          "has_issues": true,
+          "has_projects": true,
+          "has_downloads": true,
+          "has_wiki": true,
+          "has_pages": false,
+          "has_discussions": false,
+          "forks_count": 0,
+          "mirror_url": null,
+          "archived": false,
+          "disabled": false,
+          "open_issues_count": 0,
+          "license": null,
+          "allow_forking": true,
+          "is_template": false,
+          "web_commit_signoff_required": false,
+          "topics": [],
+          "visibility": "public",
+          "forks": 0,
+          "open_issues": 0,
+          "watchers": 0,
+          "default_branch": "main",
+          "network_count": 0,
+          "subscribers_count": 0
+        }
+      },
+      {
+        "json": {
+          "sha": "6cb515f6e990942a03c1f1613525965af1ed82ed",
+          "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/6cb515f6e990942a03c1f1613525965af1ed82ed",
+          "tree": [
+            {
+              "path": "README.md",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "4b124b015356a64552c5b8b5263d1c57b38260d3",
+              "size": 4395,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/4b124b015356a64552c5b8b5263d1c57b38260d3"
+            },
+            {
+              "path": "falcon.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "4a122a11da91538f010eb31e1dc23c5eaa5530d7",
+              "size": 1844,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/4a122a11da91538f010eb31e1dc23c5eaa5530d7"
+            },
+            {
+              "path": "gpt.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "2a348d903a8198dc68a86e7c8390e270fd253453",
+              "size": 1789,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/2a348d903a8198dc68a86e7c8390e270fd253453"
+            },
+            {
+              "path": "gpt_falcon.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "a0105030f865000965893fadd2a0e4199540a205",
+              "size": 2241,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/a0105030f865000965893fadd2a0e4199540a205"
+            },
+            {
+              "path": "gpt_with_chunks.py",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "468882fab1e9fcd0d5897e322a27d681cafc505d",
+              "size": 3010,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/468882fab1e9fcd0d5897e322a27d681cafc505d"
+            },
+            {
+              "path": "naruto.jpg",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "cc9ec50c85c2f785608d63d0a7679243aaab50a1",
+              "size": 164243,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/cc9ec50c85c2f785608d63d0a7679243aaab50a1"
+            },
+            {
+              "path": "rom",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "46a498b5f48039daf02173aa83ce45113e77800f",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/46a498b5f48039daf02173aa83ce45113e77800f"
+            },
+            {
+              "path": "rom/sss.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            },
+            {
+              "path": "test",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "6f7e82612e83101cca3b304f7650bf125ddb5f45",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/6f7e82612e83101cca3b304f7650bf125ddb5f45"
+            },
+            {
+              "path": "test/environ.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            },
+            {
+              "path": "test/sem",
+              "mode": "040000",
+              "type": "tree",
+              "sha": "dac294997e415c8faaa5f44d576ea0cceabd28e4",
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/trees/dac294997e415c8faaa5f44d576ea0cceabd28e4"
+            },
+            {
+              "path": "test/sem/fds.pdf",
+              "mode": "100644",
+              "type": "blob",
+              "sha": "bca3d1911f001f29d1fdc9dc1de556d9e7b2256b",
+              "size": 13393300,
+              "url": "https://api.github.com/repos/sanjay-e2m/PDF-Question-Answering/git/blobs/bca3d1911f001f29d1fdc9dc1de556d9e7b2256b"
+            }
+          ],
+          "truncated": false
+        }
+      }
+    ]
+  },
+  "versionId": "88c1c91c-59b9-4eb1-babf-1fa5d401ed69",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-19T13:28:41.455Z",
+      "updatedAt": "2025-08-19T13:28:41.455Z",
+      "role": "workflow:owner",
+      "workflowId": "XWbGqO0Ze2Wk8vSF",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
