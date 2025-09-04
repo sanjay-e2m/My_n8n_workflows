@@ -1,1 +1,767 @@
-empty
+{
+  "createdAt": "2025-09-01T08:31:55.677Z",
+  "updatedAt": "2025-09-01T08:31:55.677Z",
+  "id": "CwMrHcPKyrQPGAQ1",
+  "name": "Create a Knowledge Base Chatbot with Google Drive & GPT-4o using Vector Search",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "id": "eb5149ba-fded-42cc-a307-23c607b555f7",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        768,
+        928
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "binaryMode": "specificField",
+        "options": {}
+      },
+      "id": "093c4eac-8a9c-451d-ab9d-8d9df4f3aa8a",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        784,
+        752
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "insert"
+      },
+      "id": "181f3d52-5f8e-4d92-82d2-aa448f975b94",
+      "name": "Simple Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "position": [
+        704,
+        544
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9b4a6b6a-434c-4dee-bac1-ec6f45ea105e",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        624,
+        752
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "03665d6b-c0be-413c-9056-f04dff2135e0",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1408,
+        688
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "0effa9c5-ed00-441e-871d-be68dd0ab71f",
+      "name": "Answer questions with a vector store",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "position": [
+        1712,
+        640
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {},
+      "id": "12c37562-4204-471b-b822-61d5669a75d1",
+      "name": "Simple Vector Store2",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "position": [
+        1568,
+        848
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5addae5e-fb58-4db9-89bd-d210952e2823",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        1552,
+        992
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "8a0c3926-13eb-48ef-9c68-2d407e98b1a0",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1840,
+        848
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "## Google Drive Connection\nTo set up Google Drive OAuth2 credentials in n8n (using the recommended OAuth2 method), follow these steps:\n\n1. Create a Google Cloud Project:\n - Go to the Google Cloud Console.\n - Create a new project or select an existing one.\n\n2. Enable the Google Drive API:\n - In your project, navigate to “APIs & Services” > “Library”.\n - Search for “Google Drive API” and enable it.\n\n3. Configure OAuth Consent Screen:\n - Go to “APIs & Services” > “OAuth consent screen”.\n - Fill in the required fields (app name, user support email, etc.).\n - Add the necessary scopes (for Google Drive, typically https://www.googleapis.com/auth/drive).\n\n4. Create OAuth2 Credentials:\n - Go to “APIs & Services” > “Credentials”.\n - Click “Create Credentials” > “OAuth client ID”.\n - Choose “Web application”.\n - Add the following to “Authorized redirect URIs”:\n - https://<your-n8n-domain>/rest/oauth2-credential/callback\n - If running locally: http://localhost:5678/rest/oauth2-credential/callback\n\n5. Copy the Client ID and Client Secret.\n \n6. In n8n:\n - Go to “Credentials” and create new credentials for “Google Drive OAuth2 API”.\n - Enter the Client ID and Client Secret you copied from Google Cloud.\n - Set the appropriate scopes (e.g., https://www.googleapis.com/auth/drive).\n - Save and connect the credentials.\n\nAfter this, your Google Drive OAuth2 credentials should be set up and ready to use in your n8n workflows.\n\nNote: If you get 403:access denied you need to go back to Google cloud.\n - Go to Audience\n - Add your Email in Test users",
+        "height": 920,
+        "width": 620,
+        "color": 4
+      },
+      "id": "1e3ac2be-3026-4ce6-811a-b6a509d144aa",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3200,
+        1024
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 🛠️ Configuration Guide After Importing the Template\n\nOnce you download and import the chatbot template into your n8n instance, follow these steps to configure it properly:\n\n---\n\n### 🔑 1. **Set Up Google Drive Credentials**\n\n- Go to **Credentials** in n8n.\n- Create new credentials for **Google Drive OAuth2 API**.\n- Add your **Client ID** and **Client Secret** from Google Cloud Console \n(Follow the Google drive connection guide on the next green note).\n- Make sure to add the redirect URL:\n ```\n https://<your-n8n-domain>/rest/oauth2-credential/callback\n ```\n- Use the created credential in all `Google Drive` nodes.\n---\n\n### 📁 2. **Set the File or Folder to Load from Google Drive**\n\n- All the `Google Drive` node (except Download Files node):\n - Set the file name or folder name to search for.\n- In the `Google Drive Download Files` node:\n - Map the file ID from the search result using expressions like:\n ```\n {{$json[\"id\"]}}\n ```\n---\n\n### 🔐 3. **Connect Your OpenAI Credentials**\n\n- Create a new credential in n8n for **OpenAI API**.\n- Paste your OpenAI API key.\n- Use this credential in:\n - `Embeddings OpenAI` node\n - `OpenAI Chat Model` node\n - `Answer questions with a vector store`\n\n---",
+        "height": 980,
+        "width": 620,
+        "color": 6
+      },
+      "id": "1cc8f8f9-20d8-464b-a784-88d7f75562c2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3200,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# 🤖 Simple AI Chatbot Using Google Drive Knowledge in n8n\n\nThis guide explains how to use an **AI chatbot powered by OpenAI**, where the knowledge comes from files (like PDFs, text, etc.) stored in **Google Drive**. No coding needed!\n\n---\n\n## 📌 What This Workflow Does\n\n- Automatic file updates from Google Drive \n- Converts it into a searchable knowledge base (vector store)\n- Allows users to chat and ask questions about that file\n- AI replies based **only** on the content in your file!\n\n---",
+        "height": 520,
+        "width": 620
+      },
+      "id": "260859df-7d61-44da-b879-718bf011721e",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2544,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {}
+      },
+      "id": "71687a39-f449-4a48-b132-aca7b7248c56",
+      "name": "Download Files",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        512,
+        544
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "content": "\n### 🧩 PART 1: **File Upload and Knowledge Preparation**\n\n| Node | What It Does |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📂 File created in the Folder | Triggered when a new file is uploaded to Google Drive |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📂 File updated in the Folder | Triggered when an existing file is updated |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🔍 Search Files in your Google Drive | Finds the new or updated file |\n|----------------------------------------------|--------------------------------------------------------------|\n| ⬇️ Download Files | Downloads the actual content of the file |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🧠 Embeddings OpenAI | Converts file into searchable AI vectors |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📄 Default Data Loader | Loads document into chunks |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🔁 Recursive Character Text Splitter | Splits large documents into clean text blocks |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🧊 Simple Vector Store | Stores the vectors for AI retrieval later |\n",
+        "height": 1160,
+        "width": 1080,
+        "color": 3
+      },
+      "id": "e28d112d-5d90-4095-a7ce-c7b3f4598849",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 🧠 PART 2: **AI Chatbot for Question Answering**\n\n| Node | What It Does |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🌐 Webhook | Receives incoming question requests from external apps |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📝 Edit Fields | Maps and formats incoming user data |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🤖 AI Agent | Core logic and decision-making engine |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🔁 Window Buffer Memory | Maintains conversation memory |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🧊 Simple Vector Store2 | Retrieves stored file knowledge |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📚 Answer questions with vector store | Searches relevant parts of the uploaded file |\n|----------------------------------------------|--------------------------------------------------------------|\n| 💬 OpenAI Chat Model(s) | Generates AI response |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🔎 Is AI Agent output exist? | Conditional check to ensure a valid reply |\n|----------------------------------------------|--------------------------------------------------------------|\n| 🔐 Token Authentication | Validates that the request is authorized |\n|----------------------------------------------|--------------------------------------------------------------|\n| 📤 Send to Chat App | Sends response back to user via external platform |\n",
+        "height": 1160,
+        "width": 1380,
+        "color": 5
+      },
+      "id": "6d8ca22a-6e32-4085-82b2-ea4974e5b3d3",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1120,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bfb0e32d-659b-4fc5-a7a3-695c55137855",
+        "options": {}
+      },
+      "id": "568c80d9-4fe6-4477-9063-029f56db4c21",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        1168,
+        448
+      ],
+      "webhookId": "bfb0e32d-659b-4fc5-a7a3-695c55137855",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2a61b06-dc33-4c30-8197-cf6de3dc4a5d",
+              "name": "chatInput",
+              "type": "string",
+              "value": "={{ $json.body.Data.ChatMessage.Content }}"
+            },
+            {
+              "id": "fc96dfe9-cc87-4004-b812-cb1fa84e7f67",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $json.body.Data.ChatMessage.RoomId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ea20bf03-1fb5-4278-9e43-bd4298a12aab",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1344,
+        448
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "jsCode": "const ai = items.find(i => i.json.output);\nconst fallback = \"Sorry, I didn’t understand your message. Please try again or send a text.\";\n\nreturn [\n {\n json: {\n content: ai?.json.output || fallback\n }\n }\n];"
+      },
+      "id": "b41c5adc-d3af-4a5a-b632-a438ab2b98b6",
+      "name": "Is AI Agent output exist?",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1872,
+        448
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a friendly and well-informed customer support specialist for Venio, a third-party multichannel messaging platform. Stay factual. You must answer the user's question using only the information provided in the document content below. Do not invent or guess information outside the context. Remember to ensure the answer is correct refer to the file.\n\nYour task is to answer customer questions clearly, patiently, and in a warm, supportive tone.\n\nDo not to say feel free to ask or something like that"
+        }
+      },
+      "id": "44bb1904-7afe-41d5-8eb7-7b7c3d041ab7",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1520,
+        448
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "<Your-Token-Url>",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "<Your-Client-Id>"
+            },
+            {
+              "name": "client_secret",
+              "value": "<Your-Client-Secret>"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "id": "ee17438f-211d-436f-9570-7c588364c3fb",
+      "name": "Token Authentication",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2080,
+        448
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "<Your-Chat-Url>",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "roomId",
+              "value": "={{ $('Webhook').item.json.body.Data.ChatMessage.RoomId }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $('Is AI Agent output exist?').item.json.content }}"
+            },
+            {
+              "name": "type",
+              "value": "message"
+            },
+            {
+              "name": "platform",
+              "value": "={{ $('Webhook').item.json.body.Data.ChatMessage.Platform }}"
+            },
+            {
+              "name": "companyId",
+              "value": "={{ $('Webhook').item.json.body.Data.ChatMessage.User.CompanyId }}"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "id": "ae6c1bca-4fce-45d8-b887-89382fe1c523",
+      "name": "Send to Chat App",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2304,
+        448
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<INSERT-YOUR-FOLDER-ID>.",
+          "cachedResultUrl": "",
+          "cachedResultName": ""
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "72869e95-5e23-4606-adb4-43d34260b927",
+      "name": "File created in the Folder",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "position": [
+        80,
+        464
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "list",
+          "value": "<INSERT-YOUR-FOLDER-ID>.",
+          "cachedResultUrl": "",
+          "cachedResultName": ""
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "id": "123a8f37-9691-48d0-94f0-a45935d075c6",
+      "name": "File updated in the Folder",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "position": [
+        80,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "My Drive",
+            "cachedResultUrl": "",
+            "cachedResultName": ""
+          },
+          "folderId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "<INSERT-YOUR-FOLDER-ID>.",
+            "cachedResultUrl": "",
+            "cachedResultName": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "157704a4-3743-44d0-b400-38da18a14dd9",
+      "name": "Search Files in your Google Drive Folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        304,
+        544
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {},
+      "id": "5f93e2f7-30b8-4ee5-a0fc-1ec2b3060674",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        1568,
+        688
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "content": "---\n\n### 🌐 Webhook URL Customization (Important)\n\nWhen you create a **Webhook node** in n8n, it automatically generates a unique URL for receiving data.\n\n✅ **You do not need to delete or manually change this URL**, but you can customize the **path** if needed.\n\nFor example:\n```\nhttps://your-n8n-domain/webhook/my-ai-chatbot\n```\n\n📌 You can:\n- Click on the **Webhook node**\n- Set a **Custom Path** in the **HTTP Method + Path** section\n- Use this custom URL in external tools, forms, or apps to send questions to the chatbot\n\nThis makes integration more user-friendly and consistent with your platform naming.\n\n> ✨ Tip: Keep the path short and meaningful, like `/webhook/ask-ai` or `/webhook/hr-bot`.\n\n---\n---\n\n### 🔐 Token Authentication & Send to Chat App – URL Notes\n\nIn the following nodes, you also have to deal with URLs that should be customized for your system:\n\n---\n#### ✅ Token Authentication Node\n\n- This node is used to **verify incoming requests** to ensure only authorized apps/users can interact with the chatbot.\n- Typically, you'll compare a token (e.g., from headers or body) against a stored secret or environment variable.\n- You **do not need to hardcode the webhook URL** inside this node, but you can **define expected token values** per integration.\n\n> ✨ If you're calling the chatbot from external services, make sure they **include the token** in the correct format.\n---\n\n#### 📤 Send to Chat App Node\n\n- This is the final step where the chatbot sends the answer back to your front-end, bot, or chat system.\n- **Make sure to customize the target URL** where the answer should be posted.\n\nFor example:\n```\nhttps://your-frontend.com/api/chat-response\n```\n\n✅ Best Practice:\n- Use an environment variable or a `Set` node to define the target base URL.\n- This makes it easy to update without modifying the entire workflow.\n\n> 💡 You can also dynamically route messages using user ID or channel info in the webhook payload.\n\n---\n",
+        "height": 1380,
+        "width": 620,
+        "color": 2
+      },
+      "id": "efcb45b8-0098-48d6-8281-32e46d80fd6e",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2544,
+        560
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Is AI Agent output exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Files": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store2": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is AI Agent output exist?": {
+      "main": [
+        [
+          {
+            "node": "Token Authentication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File created in the Folder": {
+      "main": [
+        [
+          {
+            "node": "Search Files in your Google Drive Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File updated in the Folder": {
+      "main": [
+        [
+          {
+            "node": "Search Files in your Google Drive Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Files in your Google Drive Folder": {
+      "main": [
+        [
+          {
+            "node": "Download Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "da9349e5-b03d-4ae9-930b-cfc78a3ecd61",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-01T08:31:55.683Z",
+      "updatedAt": "2025-09-01T08:31:55.683Z",
+      "role": "workflow:owner",
+      "workflowId": "CwMrHcPKyrQPGAQ1",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
