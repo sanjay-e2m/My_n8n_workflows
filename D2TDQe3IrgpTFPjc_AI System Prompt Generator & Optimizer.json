@@ -1,1 +1,239 @@
-File Created for my content
+{
+  "createdAt": "2025-09-03T09:25:50.437Z",
+  "updatedAt": "2025-09-03T09:31:02.000Z",
+  "id": "D2TDQe3IrgpTFPjc",
+  "name": "AI System Prompt Generator & Optimizer",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Instructions\n\n### 1️⃣ Set Up OpenAI Connection\n1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)  \n2. Navigate to [OpenAI Billing](https://platform.openai.com/settings/organization/billing/overview)  \n3. Add funds to your billing account  \n4. Copy your API key into the **OpenAI credentials** in n8n  \n\n\n\n## 📬 Contact Information\nNeed help customizing this workflow or building similar automations?\n",
+        "height": 368,
+        "width": 400
+      },
+      "id": "bdee5a10-6997-4304-9937-c23d42e53fd7",
+      "name": "Sticky Note33",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -336,
+        128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# 🛠️ AI System Prompt Generator & Optimizer (n8n + OpenAI)\n\nThis workflow acts as a **System Prompt Optimizer Agent**.  \nYou send it a draft prompt or goal, and it returns:  \n1. A rewritten **optimized system prompt** that is clear, specific, and actionable.  \n2. A recommendation for the **best OpenAI model** to use based on reasoning needs, complexity, and latency/cost tradeoffs.  \n\n",
+        "height": 848,
+        "width": 1104,
+        "color": 7
+      },
+      "id": "1d704990-710c-493b-bca7-0ea8dc127335",
+      "name": "Sticky Note34",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        96,
+        128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 1️⃣ Set Up OpenAI Connection\n1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)  \n2. Navigate to [OpenAI Billing](https://platform.openai.com/settings/organization/billing/overview)  \n3. Add funds to your billing account  \n4. Copy your API key into the **OpenAI credentials** in n8n  ",
+        "height": 336,
+        "width": 384,
+        "color": 3
+      },
+      "id": "03646ae8-942a-4fa8-b812-0a3483e571f3",
+      "name": "Sticky Note35",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        576
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "b8075092-c52f-4c23-8f54-3d3ce8eddf70",
+      "name": "Simple Memory2",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        1024,
+        704
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a System Prompt Optimizer.  \nYour job is to take a user’s goal or draft prompt and return an optimized system prompt that is clear, specific, and actionable.  \n\n### Rules:\n- Always rewrite the input into a polished, professional **system prompt**.  \n- Ensure the system prompt includes explicit rules, roles, and constraints where useful.  \n- Make it concise but detailed enough to remove ambiguity.  \n- Recommend the **best OpenAI model** to use for this prompt, based on complexity, reasoning needs, and latency/cost tradeoffs.  \n"
+        }
+      },
+      "id": "d2295e00-787e-4cab-9ec3-76582bbe54ec",
+      "name": "AI Prompt Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        736,
+        352
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "### example question\n\nI need a system prompt for an agent that summarizes meeting transcripts into 3 bullet points for executives.\n  ",
+        "height": 304,
+        "width": 288,
+        "color": 3
+      },
+      "id": "877c4b05-c220-42d4-b13a-75f67f8df2ce",
+      "name": "Sticky Note36",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b23da170-182a-4986-a41f-abc898db343b",
+      "name": "Chat Message",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        272,
+        560
+      ],
+      "webhookId": "ccaca032-7964-4a83-9417-91a223bc1485",
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        656,
+        752
+      ],
+      "id": "007e301c-5e91-47bf-a5ac-6b88cc5e4558",
+      "name": "Google Gemini Chat Model"
+    }
+  ],
+  "connections": {
+    "Chat Message": {
+      "main": [
+        [
+          {
+            "node": "AI Prompt Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Prompt Generator",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Prompt Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9a84db14-49e1-4a38-9bbd-f67037b86536",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-03T09:25:50.443Z",
+      "updatedAt": "2025-09-03T09:25:50.443Z",
+      "role": "workflow:owner",
+      "workflowId": "D2TDQe3IrgpTFPjc",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
