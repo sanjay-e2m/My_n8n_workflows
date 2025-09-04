@@ -1,6 +1,6 @@
 {
   "createdAt": "2025-09-03T12:25:34.064Z",
-  "updatedAt": "2025-09-04T09:50:25.000Z",
+  "updatedAt": "2025-09-04T10:29:20.000Z",
   "id": "XbNgTOKf6wHph3Wd",
   "name": "N8n Github Beckup",
   "active": false,
@@ -100,23 +100,23 @@
         "resource": "file",
         "owner": {
           "__rl": true,
-          "value": "={{ $('Globals').item.json.repo.owner }}",
+          "value": "=sanjay-e2m",
           "mode": "name"
         },
         "repository": {
           "__rl": true,
-          "value": "={{ $('Globals').item.json.repo.name }}",
+          "value": "=My_n8n_workflows",
           "mode": "name"
         },
-        "filePath": "=workflows/{{ $json.file_name }}",
-        "fileContent": "empty",
-        "commitMessage": "first commit"
+        "filePath": "=workflows/{{ $json.file_set }}",
+        "fileContent": "File Created for my content",
+        "commitMessage": "= File Created at {{ new Date().toISOString() }}"
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        -1552,
-        96
+        -1456,
+        112
       ],
       "id": "ad9a8e84-f1d4-4f9c-aa00-8fe0e3bfff11",
       "name": "Create a file",
@@ -157,13 +157,13 @@
         },
         "filePath": "=workflows/{{ $json.file_name }}",
         "fileContent": "={{ JSON.stringify($json.workflow, null, 2) }}",
-        "commitMessage": "modify files"
+        "commitMessage": "=File Modify at {{ new Date().toISOString() }}"
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        -1088,
-        96
+        -992,
+        -176
       ],
       "id": "89737b96-3624-4d02-a060-86b9d2064c4b",
       "name": "Edit a file",
@@ -176,8 +176,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1312,
-        96
+        -1200,
+        112
       ],
       "id": "519485e6-1adb-439a-9f23-71b446d8ae7c",
       "name": "Code"
@@ -201,8 +201,8 @@
       "name": "Replace Me",
       "typeVersion": 1,
       "position": [
-        -848,
-        96
+        -784,
+        112
       ],
       "id": "ed2d4524-9327-4d7a-a89b-fce26f617ff6"
     },
@@ -235,7 +235,7 @@
           "cachedResultName": "My_n8n_workflows",
           "cachedResultUrl": "https://github.com/sanjay-e2m/My_n8n_workflows"
         },
-        "filePath": "/workflows/",
+        "filePath": "/workflows",
         "asBinaryProperty": false,
         "additionalParameters": {}
       },
@@ -251,7 +251,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const file_name = $('Code1').first().json.file_name;  \nconst workflowId_new = file_name.split(\"_\")[0];  \n\nconst results = $input.all().map(item => {\n  const fileName = item.json.name;   // or item.json.content.name if nested\n  const workflowId = fileName.split(\"_\")[0];\n\n  return {\n    file_name: fileName,\n    workflow_id: workflowId,\n    workflowId_new: workflowId_new,\n    isCommon: workflowId === workflowId_new   // true if same, false if not\n  };\n});\n\nreturn results;\n"
+        "jsCode": "const file_name = $('Code1').first().json.file_name;  \nconst workflowId_new = file_name.split(\"_\")[0];  \nconst file_set = $('Code1').first().json.file_name;\n\n// check if ANY workflow matches\nconst isCommon = $input.all().some(item => {\n  const fileName = item.json.name;   // or item.json.content.name if nested\n  const workflowId = fileName.split(\"_\")[0];\n  return workflowId === workflowId_new;\n});\n\nreturn [{ isCommon,file_set }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -261,6 +261,82 @@
       ],
       "id": "e8fa1fbb-c77d-4282-b715-1c56e98c468b",
       "name": "Code2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isCommon }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "65fba2fd-1100-4637-8bc1-d6a0d2ab5dd8"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "05a60a19-8625-4764-869c-3dc9f8f47488",
+                    "leftValue": "={{ $json.isCommon }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1760,
+        96
+      ],
+      "id": "d9cbb5f7-f481-4fe8-911d-fb853ded687b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflow = $('Code1').first().json.workflow;\nconst fileName = $input.first().json.file_set;\n\n// Recursive cleaner\nfunction deepClean(obj) {\n  if (typeof obj !== 'object' || obj === null) return obj;\n\n  for (const key in obj) {\n    // Remove auth/secret related keys\n    if (\n      key.toLowerCase().includes('credential') ||\n      key.toLowerCase().includes('token') ||\n      key.toLowerCase().includes('key') ||\n      key.toLowerCase().includes('secret') ||\n      key.toLowerCase().includes('auth') ||\n      key.toLowerCase().includes('password') ||\n      key.toLowerCase().includes('header')\n    ) {\n      delete obj[key];\n    } else if (typeof obj[key] === 'object') {\n      obj[key] = deepClean(obj[key]);\n    }\n  }\n  return obj;\n}\n\nconst cleanWorkflow = deepClean(JSON.parse(JSON.stringify(workflow)));\n\nreturn {\n  json: {\n    file_name: fileName,\n    workflow: cleanWorkflow\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        -144
+      ],
+      "id": "3e9e3f0e-e917-454e-a6e7-518b75c5a0c6",
+      "name": "Code3"
     }
   ],
   "connections": {
@@ -401,7 +477,36 @@
       "main": [
         [
           {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Create a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Edit a file",
             "type": "main",
             "index": 0
           }
@@ -417,7 +522,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "a7387f4a-c509-496f-b330-00ea849919dd",
+  "versionId": "cd876e24-9849-4e5e-8462-a93f07af644b",
   "triggerCount": 0,
   "shared": [
     {
