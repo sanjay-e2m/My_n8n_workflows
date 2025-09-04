@@ -1,1 +1,399 @@
-empty
+{
+  "createdAt": "2025-09-01T10:06:39.346Z",
+  "updatedAt": "2025-09-01T12:29:15.000Z",
+  "id": "FH8biInsByELgAFa",
+  "name": "Campaign",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "campaign-qa-trigger",
+        "options": {}
+      },
+      "id": "96ace97b-c299-4559-9fe1-ca52a2628d65",
+      "name": "Campaign Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        32
+      ],
+      "webhookId": "7b37b169-1f3f-42ec-bf91-bb595eaafb5c"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "e7c181c2-9a13-45ad-82aa-387a5848303b",
+      "name": "AI QA Analysis",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Campaign Webhook Trigger').item.json.campaign_url }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "a4c73616-9db8-4f26-93ac-97b41f22f1f8",
+      "name": "Validate Links",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -912,
+        224
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process QA Results\nconst aiAnalysis = $('AI QA Analysis').item.json;\nconst linkCheck = $('Validate Links').item.json;\nconst webhookData = $('Campaign Webhook Trigger').item.json;\n\n// Parse AI response if it's a string\nlet qaResults;\ntry {\n  qaResults = typeof aiAnalysis.choices[0].message.content === 'string' \n    ? JSON.parse(aiAnalysis.choices[0].message.content)\n    : aiAnalysis.choices[0].message.content;\n} catch (e) {\n  qaResults = {\n    overall_score: 50,\n    critical_issues: ['AI analysis parsing error'],\n    recommendations: ['Re-run QA analysis'],\n    compliance_status: 'UNKNOWN',\n    content_quality_score: 50,\n    technical_issues: ['Analysis parsing failed']\n  };\n}\n\n// Check link validation\nconst linkStatus = linkCheck.statusCode < 400 ? 'PASSED' : 'FAILED';\nif (linkStatus === 'FAILED') {\n  qaResults.technical_issues = qaResults.technical_issues || [];\n  qaResults.technical_issues.push('Broken or invalid links detected');\n  qaResults.overall_score = Math.max(0, qaResults.overall_score - 15);\n}\n\n// Determine approval status\nlet approvalStatus = 'APPROVED';\nif (qaResults.overall_score < 70 || qaResults.critical_issues?.length > 0) {\n  approvalStatus = 'REJECTED';\n} else if (qaResults.overall_score < 85) {\n  approvalStatus = 'NEEDS_REVIEW';\n}\n\n// Final report\nconst report = {\n  campaign_id: webhookData.campaign_id,\n  campaign_name: webhookData.campaign_name,\n  platform: webhookData.platform,\n  qa_timestamp: new Date().toISOString(),\n  overall_score: qaResults.overall_score,\n  approval_status: approvalStatus,\n  requires_review: approvalStatus !== 'APPROVED',\n  critical_issues: qaResults.critical_issues || [],\n  recommendations: qaResults.recommendations || [],\n  compliance_status: qaResults.compliance_status,\n  content_quality_score: qaResults.content_quality_score,\n  technical_issues: qaResults.technical_issues || [],\n  link_validation: {\n    status: linkStatus,\n    response_code: linkCheck.statusCode || 'N/A'\n  }\n};\n\nreturn [{ json: report }];"
+      },
+      "id": "24d88c1e-be9c-4ac0-8f49-5589fd6137b2",
+      "name": "Process QA Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.requires_review }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "ec2c9c29-fecd-4395-b4f5-32643ce64ef2",
+      "name": "Needs Review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "qa-automation@mdtmarketing.com",
+        "toEmail": "gary@mdtmarketing.com",
+        "subject": "🚨 Campaign QA Alert: {{ $json.campaign_name }}",
+        "emailFormat": "html",
+        "options": {}
+      },
+      "id": "c2f052ec-6fe2-4a41-9888-c57d999d53c7",
+      "name": "Send Alert Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -336
+      ],
+      "webhookId": "978411f9-ae7f-4af1-8b99-6b3071ab4859",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "84b1d9ae-f2bb-471e-9de4-3445416db6cb",
+      "name": "Teams Notification",
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        32
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/objects/campaigns/{{ $('Campaign Webhook Trigger').item.json.campaign_id }}",
+        "options": {}
+      },
+      "id": "e6bb2e32-1ae4-4799-a5b2-ada549683f69",
+      "name": "Update HubSpot Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        432,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.zapier.com/hooks/catch/your-powerbi-webhook/",
+        "options": {}
+      },
+      "id": "bf05abf9-e9dc-44cf-aa58-664cb0215a34",
+      "name": "Update PowerBI Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        672,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.approval_status }}",
+              "value2": "APPROVED"
+            }
+          ]
+        }
+      },
+      "id": "d51cc269-c318-4a96-a9e3-4440729f911c",
+      "name": "Auto Deploy Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://api.hubapi.com/marketing/v3/campaigns/{{ $('Campaign Webhook Trigger').item.json.campaign_id }}",
+        "options": {}
+      },
+      "id": "fc6a5afa-cb2e-4d73-8055-e55b3aafe5d6",
+      "name": "Auto Approve Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        432,
+        256
+      ]
+    }
+  ],
+  "connections": {
+    "Campaign Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI QA Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Validate Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI QA Analysis": {
+      "main": [
+        [
+          {
+            "node": "Process QA Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Links": {
+      "main": [
+        [
+          {
+            "node": "Process QA Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process QA Results": {
+      "main": [
+        [
+          {
+            "node": "Needs Review?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Auto Deploy Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Teams Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Review?": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update HubSpot Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Alert Email": {
+      "main": [
+        [
+          {
+            "node": "Update HubSpot Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teams Notification": {
+      "main": [
+        [
+          {
+            "node": "Update PowerBI Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Deploy Check": {
+      "main": [
+        [
+          {
+            "node": "Auto Approve Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update HubSpot Record": {
+      "main": [
+        [
+          {
+            "node": "Update PowerBI Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Approve Campaign": {
+      "main": [
+        [
+          {
+            "node": "Update PowerBI Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7859662f-d73a-4e5f-89ac-24e82508a6cd",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-01T10:06:39.350Z",
+      "updatedAt": "2025-09-01T10:06:39.350Z",
+      "role": "workflow:owner",
+      "workflowId": "FH8biInsByELgAFa",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
