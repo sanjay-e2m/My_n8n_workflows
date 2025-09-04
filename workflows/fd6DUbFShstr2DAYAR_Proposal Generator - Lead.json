@@ -1,1 +1,943 @@
-empty
+{
+  "createdAt": "2025-08-27T12:04:20.988Z",
+  "updatedAt": "2025-08-28T11:48:31.000Z",
+  "id": "6DUbFShstr2DAYAR",
+  "name": "Proposal Generator - Lead",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Google Slides AI Proposal Generator\n**This flow generates proposals using AI and the free Google Slides solution**.",
+        "height": 360,
+        "width": 1780
+      },
+      "id": "58fd61fb-1399-4d97-95c8-8008b9636304",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        112
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and parse JSON from Gemini response\nconst geminiResponse = $input.first();\n\n// Get the text content from Gemini's response structure\nlet responseText = '';\n\nif (geminiResponse.json?.[0]?.content?.parts?.[0]?.text) {\n  responseText = geminiResponse.json[0].content.parts[0].text;\n} else if (geminiResponse.json?.content?.parts?.[0]?.text) {\n  responseText = geminiResponse.json.content.parts[0].text;\n} else if (typeof geminiResponse.json === 'string') {\n  responseText = geminiResponse.json;\n} else {\n  responseText = JSON.stringify(geminiResponse.json);\n}\n\n// Make sure it's a string before replacing\nresponseText = String(responseText);\n\n// Remove markdown code fences if present\nresponseText = responseText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\n// Parse the JSON\nlet parsedContent;\ntry {\n  parsedContent = JSON.parse(responseText);\n} catch (error) {\n  // If direct parsing fails, try to extract JSON from the text\n  const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsedContent = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('Could not parse JSON from response: ' + responseText);\n  }\n}\n\n// Return in OpenAI-like format\nreturn {\n  json: {\n    index: 0,\n    message: {\n      role: \"assistant\",\n      content: parsedContent,\n      refusal: null,\n      annotations: []\n    },\n    logprobs: null,\n    finish_reason: \"stop\"\n  }\n};\n"
+      },
+      "id": "dc88a26e-9821-45e9-9a8a-be2a3b459344",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        448,
+        -336
+      ],
+      "typeVersion": 2,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a helpful, intelligent writing assistant.\n\nYour task is to generate a proposal using input data from a form. This proposal should be highly customized, specific, and high-quality, considering we're going to be sending it immediately after you're done.\n\nContext: we are an automation/no-code agency that develops systems revolving around growth, revenue ops, etc.\n\nThe proposal template we're using has many fields. You must return these fields in one JSON object.\n\nUse this format:\n\n{\n  \"proposalTitle\": \"\",\n  \"descriptionName\": \"\",\n  \"oneParagraphProblemSummary\": \"\",\n  \"solutionHeadingOne\": \"\",\n  \"solutionDescriptionOne\": \"\",\n  \"solutionHeadingTwo\": \"\",\n  \"solutionDescriptionTwo\": \"\",\n  \"solutionHeadingThree\": \"\",\n  \"solutionDescriptionThree\":\"\",\n  \"shortScopeTitleOne\": \"\",\n  \"shortScopeTitleTwo\": \"\",\n  \"shortScopeTitleThree\": \"\",\n  \"shortScopeDescriptionOne\": \"\",\n  \"shortScopeDescriptionTwo\": \"\",\n  \"shortScopeDescriptionThree\": \"\",\n  \"milestoneOneDay\": \"\",\n  \"milestoneTwoDay\": \"\",\n  \"milestoneThreeDay\": \"\",\n  \"milestoneFourDay\": \"\",\n  \"milestoneDescriptionOne\": \"\",\n  \"milestoneDescriptionTwo\": \"\",\n  \"milestoneDescriptionThree\": \"\",\n  \"milestoneDescriptionFour\": \"\"\n}\n\nRules:\n1. Use a spartan, casual tone of voice.\n2. Be to-the-point but professional—assume you're writing to a sophisticated audience.\n3. Ensure that all fields are filled out. Do not miss a field or leave any variables empty.\n4. Keep things short. If a field contains the term \"Description\" it should be no more than fourteen words. For \"descriptionName\" do not use title case.\n5. IMPORTANT: Return ONLY the raw JSON object. No markdown, no code blocks, no extra text. Just the JSON.\n\nExample input data:\n{\n  \"companyName\":\"1SecondCopy\",\n  \"problem\": \"they can't generate leads. everything is referral based rn.\",\n  \"solution\": \"cold email lead gen system, client reactivation system, and best in class sales training for closing\",\n  \"scope\": \"1k/day cold email infra, 30k email leads, 4 weekly zoom sessions for sales training\",\n  \"currentDate\":\"Feb 4 2025\",\n  \"howSoon\": \"two months\",\n  \"depositCost\": \"$1,845\"\n}\n\nNow process this input data:"
+            },
+            {
+              "content": "={\n  \"companyName\":\"{{ $json['Company Name'] }}\",\n  \"problem\": \"{{ $json.Problem }}\",\n  \"solution\": \"{{ $json.Solution}}\",\n  \"scope\": \"{{ $json.Scope }}\",\n  \"currentDate\":\"{{ $now.toLocaleString({ dateStyle: 'medium' }) }}\",\n  \"howSoon\": \"{{ $json['How soon?'] }}\",\n  \"depositCost\": \"{{ $json.Cost }}\"\n}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "6b7ec473-1821-48e9-852e-0a5ae15372f2",
+      "name": "Google Gemini1",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "position": [
+        144,
+        -336
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ZW9anOdgJHYYnEsa",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "replaceText",
+        "presentationId": "={{ $json.id }}",
+        "textUi": {
+          "textValues": [
+            {
+              "text": "{{proposalTitle}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.proposalTitle }}"
+            },
+            {
+              "text": "{{descriptionName}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.descriptionName }}"
+            },
+            {
+              "text": "{{oneParagraphProblemSummary}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.oneParagraphProblemSummary }}"
+            },
+            {
+              "text": "{{solutionHeadingOne}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionHeadingOne }}"
+            },
+            {
+              "text": "{{solutionHeadingTwo}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionHeadingTwo }}"
+            },
+            {
+              "text": "{{solutionHeadingThree}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionHeadingThree }}"
+            },
+            {
+              "text": "{{solutionDescriptionOne}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionDescriptionOne }}"
+            },
+            {
+              "text": "{{solutionDescriptionTwo}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionDescriptionTwo }}"
+            },
+            {
+              "text": "{{solutionDescriptionThree}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.solutionDescriptionThree }}"
+            },
+            {
+              "text": "{{shortScopeTitleOne}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeTitleOne }}"
+            },
+            {
+              "text": "{{shortScopeTitleTwo}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeTitleTwo }}"
+            },
+            {
+              "text": "{{shortScopeTitleThree}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeTitleThree }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionOne}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeDescriptionOne }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionTwo}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeDescriptionTwo }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionThree}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.shortScopeDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneOneDay}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneOneDay }}"
+            },
+            {
+              "text": "{{milestoneTwoDay}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneTwoDay }}"
+            },
+            {
+              "text": "{{milestoneThreeDay}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneThreeDay }}"
+            },
+            {
+              "text": "{{milestoneFourDay}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneFourDay }}"
+            },
+            {
+              "text": "{{milestoneDescriptionOne}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneDescriptionOne }}"
+            },
+            {
+              "text": "{{milestoneDescriptionTwo}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneDescriptionTwo }}"
+            },
+            {
+              "text": "{{milestoneDescriptionThree}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneDescriptionFour}}",
+              "replaceText": "={{ $('Format Response').item.json.message.content.milestoneDescriptionFour }}"
+            },
+            {
+              "text": "{{cost}}",
+              "replaceText": "={{ $('On form submission1').item.json.Cost }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9f23b125-d696-4150-a1f8-ef9cdbd4cb70",
+      "name": "Replace Text1",
+      "type": "n8n-nodes-base.googleSlides",
+      "position": [
+        880,
+        -336
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "googleSlidesOAuth2Api": {
+          "id": "FErEc8RL2vO3lqiG",
+          "name": "Google Slides account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1dATRgEhzkkjTfxFFlCKnlM-HGWMkKYwyGxMTkS-8Hgg",
+          "mode": "id"
+        },
+        "name": "={{ $json.message.content.proposalTitle }}",
+        "options": {
+          "copyRequiresWriterPermission": false
+        }
+      },
+      "id": "f3ef1da9-9d62-445d-89e8-c4f7940a996c",
+      "name": "Google Drive1",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        656,
+        -336
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "OsvYgSCXPizqgBCe",
+          "name": "Google Drive account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission1').item.json.Email }}",
+        "subject": "=Re: Proposal for  {{ $('On form submission1').item.json['Company Name'] }}",
+        "emailType": "text",
+        "message": "=Hey {{ $('On form submission1').item.json['First Name'] }},\n\nThanks for the great call earlier. I had a moment after our chat to put together a detailed proposal for you—please take a look at your earliest convenience and let me know your thoughts.\n\nYou'll find it here: https://docs.google.com/presentation/d/{{ $json.presentationId }}/edit\n\nIf you have any questions, just ask. I've also sent over an invoice for the project (just to keep things convenient) and we can get started anytime that's sorted.\n\nThanks,\n[YOUR NAME]",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fda12550-98b4-4f97-89f5-5045ed8539ca",
+      "name": "Gmail1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1088,
+        -336
+      ],
+      "webhookId": "WEBHOOK_ID_WILL_BE_GENERATED",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oGbgyj086BSlP3RX",
+          "name": "Gmail account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "formTitle": "Sales Call Logging Form",
+        "formDescription": "This form logs a sales call & automatically generates a proposal.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "First Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Last Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Website",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Solution",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Scope",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Cost",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "How soon?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0b87ae03-4a38-4b24-89de-2bead6584086",
+      "name": "On form submission1",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -32,
+        -336
+      ],
+      "webhookId": "f3d2a0dd-7e0b-48bd-940a-427d33e2b7e0",
+      "typeVersion": 2.2,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced JSON parsing with better error handling and validation\nconst geminiResponse = $input.first();\n\n// Extract text content from various Gemini response formats\nlet responseText = '';\n\nif (geminiResponse.json?.[0]?.content?.parts?.[0]?.text) {\n  responseText = geminiResponse.json[0].content.parts[0].text;\n} else if (geminiResponse.json?.content?.parts?.[0]?.text) {\n  responseText = geminiResponse.json.content.parts[0].text;\n} else if (typeof geminiResponse.json === 'string') {\n  responseText = geminiResponse.json;\n} else {\n  responseText = JSON.stringify(geminiResponse.json);\n}\n\n// Ensure string conversion and clean formatting\nresponseText = String(responseText).trim();\n\n// Remove markdown code fences and extra whitespace\nresponseText = responseText\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .replace(/^\\s+|\\s+$/gm, '')\n  .trim();\n\n// Multiple parsing strategies for robustness\nlet parsedContent;\ntry {\n  // First attempt: direct parsing\n  parsedContent = JSON.parse(responseText);\n} catch (error) {\n  try {\n    // Second attempt: extract JSON object\n    const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      parsedContent = JSON.parse(jsonMatch[0]);\n    } else {\n      throw new Error('No JSON object found');\n    }\n  } catch (secondError) {\n    // Third attempt: fix common JSON issues\n    let cleanedText = responseText\n      .replace(/([{,]\\s*)(\\w+):/g, '$1\"$2\":') // Add quotes to keys\n      .replace(/:\\s*([^\\[\\]{},\"\\n\\r]+)(?=[,}])/g, ': \"$1\"') // Add quotes to values\n      .replace(/,\\s*}/g, '}') // Remove trailing commas\n      .replace(/,\\s*]/g, ']');\n    \n    try {\n      parsedContent = JSON.parse(cleanedText);\n    } catch (finalError) {\n      console.error('All parsing attempts failed:', finalError);\n      throw new Error('Could not parse JSON from response: ' + responseText.substring(0, 200) + '...');\n    }\n  }\n}\n\n// Validate required fields\nconst requiredFields = [\n  'proposalTitle', 'descriptionName', 'oneParagraphProblemSummary',\n  'solutionHeadingOne', 'solutionDescriptionOne', 'solutionHeadingTwo',\n  'solutionDescriptionTwo', 'solutionHeadingThree', 'solutionDescriptionThree',\n  'shortScopeTitleOne', 'shortScopeTitleTwo', 'shortScopeTitleThree',\n  'shortScopeDescriptionOne', 'shortScopeDescriptionTwo', 'shortScopeDescriptionThree',\n  'milestoneOneDay', 'milestoneTwoDay', 'milestoneThreeDay', 'milestoneFourDay',\n  'milestoneDescriptionOne', 'milestoneDescriptionTwo', 'milestoneDescriptionThree',\n  'milestoneDescriptionFour'\n];\n\n// Check for missing fields and provide defaults\nrequiredFields.forEach(field => {\n  if (!parsedContent[field] || parsedContent[field].trim() === '') {\n    console.warn(`Missing or empty field: ${field}`);\n    parsedContent[field] = `[${field} - Please review]`;\n  }\n});\n\n// Return in OpenAI-compatible format with enhanced metadata\nreturn {\n  json: {\n    index: 0,\n    message: {\n      role: \"assistant\",\n      content: parsedContent,\n      refusal: null,\n      annotations: [],\n      metadata: {\n        processingTime: new Date().toISOString(),\n        fieldsValidated: requiredFields.length,\n        parsingStrategy: 'enhanced_robust'\n      }\n    },\n    logprobs: null,\n    finish_reason: \"stop\"\n  }\n};"
+      },
+      "id": "cfe0938d-ac41-43c7-9102-4fd720479486",
+      "name": "Enhanced Format Response",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        384,
+        256
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an elite proposal writing assistant specialized in automation and no-code solutions.\n\nYour task: Generate a highly customized, professional proposal using form input data. This proposal will be sent immediately to prospects, so quality is critical.\n\nContext: We are a premium automation/no-code agency specializing in growth systems, revenue operations, lead generation, and business process automation.\n\nIMPORTANT: Return ONLY a valid JSON object with ALL required fields. No markdown, no code blocks, no explanations.\n\nRequired JSON structure:\n{\n  \"proposalTitle\": \"\",\n  \"descriptionName\": \"\",\n  \"oneParagraphProblemSummary\": \"\",\n  \"solutionHeadingOne\": \"\",\n  \"solutionDescriptionOne\": \"\",\n  \"solutionHeadingTwo\": \"\",\n  \"solutionDescriptionTwo\": \"\",\n  \"solutionHeadingThree\": \"\",\n  \"solutionDescriptionThree\": \"\",\n  \"shortScopeTitleOne\": \"\",\n  \"shortScopeTitleTwo\": \"\",\n  \"shortScopeTitleThree\": \"\",\n  \"shortScopeDescriptionOne\": \"\",\n  \"shortScopeDescriptionTwo\": \"\",\n  \"shortScopeDescriptionThree\": \"\",\n  \"milestoneOneDay\": \"\",\n  \"milestoneTwoDay\": \"\",\n  \"milestoneThreeDay\": \"\",\n  \"milestoneFourDay\": \"\",\n  \"milestoneDescriptionOne\": \"\",\n  \"milestoneDescriptionTwo\": \"\",\n  \"milestoneDescriptionThree\": \"\",\n  \"milestoneDescriptionFour\": \"\"\n}\n\nWriting Guidelines:\n1. Tone: Professional yet conversational, confident, results-focused\n2. Audience: Sophisticated business decision-makers\n3. Length: Description fields max 14 words, be concise but impactful\n4. descriptionName: Use lowercase, no title case\n5. ALL fields must be completed - never leave empty\n6. Focus on measurable outcomes and business impact\n7. Use specific, actionable language\n8. Timeline should be realistic but show urgency\n\nSolution Structure:\n- Heading One: Primary automation/system solution\n- Heading Two: Secondary integration/optimization component  \n- Heading Three: Training/support/maintenance element\n\nMilestone Timing:\n- Calculate realistic days based on project scope and urgency\n- Consider setup, implementation, testing, and delivery phases\n- Account for client feedback cycles\n\nProcess this input data:"
+            },
+            {
+              "content": "={\n  \"companyName\": \"{{ $json['Company Name'] }}\",\n  \"problem\": \"{{ $json.Problem }}\",\n  \"solution\": \"{{ $json.Solution }}\",\n  \"scope\": \"{{ $json.Scope }}\",\n  \"currentDate\": \"{{ $now.toLocaleString({ dateStyle: 'medium' }) }}\",\n  \"howSoon\": \"{{ $json['How soon?'] }}\",\n  \"depositCost\": \"{{ $json.Cost }}\",\n  \"firstName\": \"{{ $json['First Name'] }}\",\n  \"website\": \"{{ $json.Website }}\"\n}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3,
+          "topP": 0.8
+        }
+      },
+      "id": "9c5b0587-62f9-472b-b166-55172cce8a3d",
+      "name": "Enhanced Gemini Proposal Generator",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "position": [
+        80,
+        256
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ZW9anOdgJHYYnEsa",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "replaceText",
+        "presentationId": "={{ $json.id }}",
+        "textUi": {
+          "textValues": [
+            {
+              "text": "{{proposalTitle}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.proposalTitle }}"
+            },
+            {
+              "text": "{{descriptionName}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.descriptionName }}"
+            },
+            {
+              "text": "{{oneParagraphProblemSummary}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.oneParagraphProblemSummary }}"
+            },
+            {
+              "text": "{{solutionHeadingOne}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionHeadingOne }}"
+            },
+            {
+              "text": "{{solutionHeadingTwo}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionHeadingTwo }}"
+            },
+            {
+              "text": "{{solutionHeadingThree}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionHeadingThree }}"
+            },
+            {
+              "text": "{{solutionDescriptionOne}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionDescriptionOne }}"
+            },
+            {
+              "text": "{{solutionDescriptionTwo}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionDescriptionTwo }}"
+            },
+            {
+              "text": "{{solutionDescriptionThree}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.solutionDescriptionThree }}"
+            },
+            {
+              "text": "{{shortScopeTitleOne}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeTitleOne }}"
+            },
+            {
+              "text": "{{shortScopeTitleTwo}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeTitleTwo }}"
+            },
+            {
+              "text": "{{shortScopeTitleThree}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeTitleThree }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionOne}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeDescriptionOne }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionTwo}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeDescriptionTwo }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionThree}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.shortScopeDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneOneDay}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneOneDay }}"
+            },
+            {
+              "text": "{{milestoneTwoDay}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneTwoDay }}"
+            },
+            {
+              "text": "{{milestoneThreeDay}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneThreeDay }}"
+            },
+            {
+              "text": "{{milestoneFourDay}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneFourDay }}"
+            },
+            {
+              "text": "{{milestoneDescriptionOne}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneDescriptionOne }}"
+            },
+            {
+              "text": "{{milestoneDescriptionTwo}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneDescriptionTwo }}"
+            },
+            {
+              "text": "{{milestoneDescriptionThree}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneDescriptionFour}}",
+              "replaceText": "={{ $('Enhanced Format Response').item.json.message.content.milestoneDescriptionFour }}"
+            },
+            {
+              "text": "{{cost}}",
+              "replaceText": "={{ $('On form submission').item.json.Cost }}"
+            },
+            {
+              "pageObjectIds": "=",
+              "text": "{{clientName}}",
+              "replaceText": "="
+            },
+            {
+              "text": "{{companyName}}",
+              "replaceText": "={{ $('On form submission').item.json[\"Company Name\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dbc4a77f-1692-4909-81f0-3862db45aff1",
+      "name": "Enhanced Google Slides Update",
+      "type": "n8n-nodes-base.googleSlides",
+      "position": [
+        992,
+        240
+      ],
+      "typeVersion": 2,
+      "credentials": {
+        "googleSlidesOAuth2Api": {
+          "id": "FErEc8RL2vO3lqiG",
+          "name": "Google Slides account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1dATRgEhzkkjTfxFFlCKnlM-HGWMkKYwyGxMTkS-8Hgg",
+          "mode": "id"
+        },
+        "name": "={{ $json.message.content.proposalTitle }} - {{ $('On form submission').item.json[\"Company Name\"] }}",
+        "options": {
+          "copyRequiresWriterPermission": false
+        }
+      },
+      "id": "56b3c7fe-7401-4b19-be6b-27ffd88a81f3",
+      "name": "Enhanced Google Drive Copy",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        800,
+        240
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "OsvYgSCXPizqgBCe",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "=Your Custom Automation Proposal - {{ $('On form submission').item.json[\"Company Name\"] }}",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"margin: 0; font-size: 24px; font-weight: 600;\">Your Custom Proposal is Ready!</h1>\n  </div>\n  \n  <div style=\"background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);\">\n    <p style=\"font-size: 16px; line-height: 1.6; margin-bottom: 20px;\">Hi {{ $('On form submission').item.json[\"First Name\"] }},</p>\n    \n    <p style=\"font-size: 16px; line-height: 1.6; margin-bottom: 25px;\">Thanks for the excellent discussion about {{ $('On form submission').item.json[\"Company Name\"] }}'s automation needs. I've crafted a detailed proposal specifically tailored to your requirements.</p>\n    \n    <div style=\"background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 25px 0; border-left: 4px solid #667eea;\">\n      <h3 style=\"margin: 0 0 10px 0; color: #667eea;\">📋 What's Inside:</h3>\n      <ul style=\"margin: 0; padding-left: 20px; line-height: 1.8;\">\n        <li>Customized automation solution for your specific challenges</li>\n        <li>Detailed project timeline and milestones</li>\n        <li>Clear deliverables and success metrics</li>\n        <li>Investment details and next steps</li>\n      </ul>\n    </div>\n    \n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://docs.google.com/presentation/d/{{ $json.presentationId }}/edit\" \n         style=\"display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);\">\n        📖 View Your Proposal\n      </a>\n    </div>\n    \n    <p style=\"font-size: 14px; line-height: 1.6; color: #666; margin-top: 25px;\">Questions? Just reply to this email or schedule a quick call. I'm here to help make this as smooth as possible.</p>\n    \n    <div style=\"margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;\">\n      <p style=\"margin: 0; font-size: 16px; color: #333;\">Best regards,</p>\n      <p style=\"margin: 5px 0 0 0; font-weight: 600; color: #667eea;\">[YOUR NAME]</p>\n    </div>\n  </div>\n  \n  <div style=\"text-align: center; margin-top: 20px; color: #888; font-size: 12px;\">\n    <p>This proposal was automatically generated based on your specific requirements.</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "84a83f2f-3393-4d2d-90fd-088c228504ef",
+      "name": "Enhanced Gmail Sender",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1200,
+        240
+      ],
+      "typeVersion": 2.1,
+      "webhookId": "ebd24a73-4ef7-4b7e-a8fa-0934180549d8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oGbgyj086BSlP3RX",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validation_check",
+              "leftValue": "={{ $json.message.content.proposalTitle }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "47b1c2fb-3a36-4c37-b885-443103d88826",
+      "name": "Proposal Validation",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        576,
+        256
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log successful proposal generation\nconst proposalData = $input.first().json;\nconst company_name = $('On form submission').first().json[\"Company Name\"];\n\n// Defensive checks\nconst content = proposalData?.message?.content || {};\n\nconsole.log('✅ Proposal Generated Successfully:', {\n  company: company_name,\n  timestamp: new Date().toISOString(),\n  proposalTitle: content.proposalTitle || '(missing proposalTitle)',\n  fieldsCount: Object.keys(content).length\n});\n\n// Pass data through\nreturn $input.all();\n"
+      },
+      "id": "466134e1-9d7b-4196-878e-d1885328de85",
+      "name": "Success Logger",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1376,
+        240
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "formTitle": "Sales Call Logging Form",
+        "formDescription": "This form logs a sales call & automatically generates a proposal.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "First Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Last Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Website",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Solution",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Scope",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Cost",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "How soon?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0b05f07c-7d6b-41e3-92ce-a6ec0d6c8e47",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -112,
+        256
+      ],
+      "webhookId": "0c33984e-8644-46ef-ad78-554f8599bdc4",
+      "typeVersion": 2.2
+    }
+  ],
+  "connections": {
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini1": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Text1": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Replace Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "Google Gemini1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Format Response": {
+      "main": [
+        [
+          {
+            "node": "Proposal Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Gemini Proposal Generator": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Google Slides Update": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Gmail Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Google Drive Copy": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Google Slides Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Gmail Sender": {
+      "main": [
+        [
+          {
+            "node": "Success Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Proposal Validation": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Google Drive Copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Gemini Proposal Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "On form submission1": [
+      {
+        "json": {
+          "Cost": "$2,500",
+          "Email": "sanjay.makwana@e2m.solutions",
+          "Scope": "Setup and 1 month training",
+          "Problem": "Low sales due to lead generation problems",
+          "Website": "www.example.com",
+          "Solution": "AI automation system for lead generation",
+          "formMode": "test",
+          "How soon?": "Within 2 weeks",
+          "Last Name": "Doe",
+          "First Name": "John",
+          "submittedAt": "2025-05-13T09:10:33.001+01:00",
+          "Company Name": "Example Corp"
+        }
+      }
+    ],
+    "Google Gemini1": [
+      {
+        "json": {
+          "content": {
+            "parts": [
+              {
+                "text": "```json\n{\n  \"proposalTitle\": \"AI Lead Gen Automation for Example Corp\",\n  \"descriptionName\": \"example corp lead gen automation\",\n  \"oneParagraphProblemSummary\": \"Example Corp struggles with lead generation, leading to low sales. Current methods aren't scalable.\",\n  \"solutionHeadingOne\": \"AI-Powered Lead Generation\",\n  \"solutionDescriptionOne\": \"Automated lead sourcing using AI to identify and engage potential customers.\",\n  \"solutionHeadingTwo\": \"Personalized Outreach Automation\",\n  \"solutionDescriptionTwo\": \"Crafting personalized messages to increase engagement and conversion rates.\",\n  \"solutionHeadingThree\": \"Performance Tracking and Optimization\",\n  \"solutionDescriptionThree\": \"Continuous monitoring and refinement of the system for optimal results.\",\n  \"shortScopeTitleOne\": \"System Setup\",\n  \"shortScopeTitleTwo\": \"Lead Database\",\n  \"shortScopeTitleThree\": \"Training\",\n  \"shortScopeDescriptionOne\": \"We'll configure the AI system tailored to Example Corp's specific needs.\",\n  \"shortScopeDescriptionTwo\": \"Building a targeted lead database for effective outreach campaigns.\",\n  \"shortScopeDescriptionThree\": \"One month of training to manage and optimize the system.\",\n  \"milestoneOneDay\": \"Day 3\",\n  \"milestoneTwoDay\": \"Day 7\",\n  \"milestoneThreeDay\": \"Day 14\",\n  \"milestoneFourDay\": \"Day 30\",\n  \"milestoneDescriptionOne\": \"AI system setup complete, initial testing and configuration.\",\n  \"milestoneDescriptionTwo\": \"Lead database populated, ready for outreach campaigns.\",\n  \"milestoneDescriptionThree\": \"Outreach automation launched, initial performance monitoring.\",\n  \"milestoneDescriptionFour\": \"Training completion, ongoing support and optimization.\"\n}\n```"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -0.22855838603619238
+        }
+      }
+    ],
+    "Enhanced Gemini Proposal Generator": [
+      {
+        "json": {
+          "content": {
+            "parts": [
+              {
+                "text": "{\n  \"proposalTitle\": \"Revenue Automation System for Example Corp\",\n  \"descriptionName\": \"example corp revenue automation implementation\",\n  \"oneParagraphProblemSummary\": \"Example Corp faces significant revenue limitations due to manual lead generation processes and lack of scalable sales systems, resulting in missed opportunities and inefficient resource allocation that directly impacts growth potential.\",\n  \"solutionHeadingOne\": \"AI-Powered Lead Generation Engine\",\n  \"solutionDescriptionOne\": \"Automated prospecting system generating qualified leads with personalized outreach sequences.\",\n  \"solutionHeadingTwo\": \"Revenue Operations Dashboard\",\n  \"solutionDescriptionTwo\": \"Centralized tracking system monitoring conversions, pipeline metrics, and ROI analytics.\",\n  \"solutionHeadingThree\": \"Team Training & Optimization\",\n  \"solutionDescriptionThree\": \"Comprehensive onboarding program ensuring maximum system adoption and performance optimization.\",\n  \"shortScopeTitleOne\": \"System Architecture\",\n  \"shortScopeTitleTwo\": \"Lead Database Setup\",\n  \"shortScopeTitleThree\": \"Training Program\",\n  \"shortScopeDescriptionOne\": \"Custom automation infrastructure designed specifically for Example Corp's market and goals.\",\n  \"shortScopeDescriptionTwo\": \"Targeted prospect database with automated qualification and scoring mechanisms built-in.\",\n  \"shortScopeDescriptionThree\": \"Four-week intensive training program covering system management and optimization strategies.\",\n  \"milestoneOneDay\": \"Day 5\",\n  \"milestoneTwoDay\": \"Day 12\",\n  \"milestoneThreeDay\": \"Day 21\",\n  \"milestoneFourDay\": \"Day 30\",\n  \"milestoneDescriptionOne\": \"Infrastructure deployment complete with initial system configuration and testing protocols.\",\n  \"milestoneDescriptionTwo\": \"Lead database populated with qualified prospects and automated workflows activated.\",\n  \"milestoneDescriptionThree\": \"Full system integration with existing tools and performance monitoring dashboard deployed.\",\n  \"milestoneDescriptionFour\": \"Training completion with ongoing support documentation and optimization recommendations delivered.\"\n}"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -0.18234567890123457
+        }
+      }
+    ],
+    "On form submission": [
+      {
+        "json": {
+          "Cost": "$2,500",
+          "Email": "sanjay.makwana@e2m.solutions",
+          "Scope": "Setup and 1 month training",
+          "Problem": "Low sales due to lead generation problems",
+          "Website": "www.example.com",
+          "Solution": "AI automation system for lead generation",
+          "formMode": "test",
+          "How soon?": "Within 2 weeks",
+          "Last Name": "Doe",
+          "First Name": "John",
+          "submittedAt": "2025-05-13T09:10:33.001+01:00",
+          "Company Name": "Example Corp"
+        }
+      }
+    ]
+  },
+  "versionId": "28a3c34b-35bc-4675-bd1b-69ac9f0b9af8",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-27T12:04:20.997Z",
+      "updatedAt": "2025-08-27T12:04:20.997Z",
+      "role": "workflow:owner",
+      "workflowId": "6DUbFShstr2DAYAR",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
