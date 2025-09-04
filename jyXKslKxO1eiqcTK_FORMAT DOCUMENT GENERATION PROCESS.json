@@ -1,1 +1,304 @@
-File Created for my content
+{
+  "createdAt": "2025-08-29T08:17:08.774Z",
+  "updatedAt": "2025-08-29T12:26:55.000Z",
+  "id": "jyXKslKxO1eiqcTK",
+  "name": "FORMAT DOCUMENT GENERATION PROCESS",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $json.data.location }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        -144
+      ],
+      "id": "3a762a02-15b6-40f0-955c-618c8f19cead",
+      "name": "Download Documents"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.givemepdf.com/api/v1/pdf/create",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "body",
+              "value": "={{ $json.html }}"
+            },
+            {
+              "name": "document_name",
+              "value": "Client_Report.pdf"
+            },
+            {
+              "name": "orientation",
+              "value": "portrait"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "3e12102f-e4cb-4b16-9122-53b7387c0374",
+      "name": "Formatted Document"
+    },
+    {
+      "parameters": {
+        "formTitle": "Documents",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Title",
+              "placeholder": "Provide Your Titles"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        -144
+      ],
+      "id": "1ef67ac6-a723-4590-b311-dae4384d79ad",
+      "name": "On form submission",
+      "webhookId": "e42c6763-048c-456c-8335-8c8c378814b3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: comes from the previous node, adjust \"items[0].json.content.parts[0].text\"\n// Output: clean HTML string\n\nconst rawText = items[0].json.content.parts[0].text;\n\n// Step 1: Remove surrounding array brackets and any quotes\nlet cleaned = rawText.replace(/^\\[\\s*\"?/, \"\").replace(/\"?\\s*\\]$/, \"\");\n\n// Step 2: Replace escaped \\n with real newlines\ncleaned = cleaned.replace(/\\\\n/g, \"\\n\");\n\n// Step 3: Replace escaped quotes and any remaining quote artifacts\ncleaned = cleaned.replace(/\\\\\"/g, '\"');\ncleaned = cleaned.replace(/\"\\s*$/g, \"\"); // Remove trailing quotes\ncleaned = cleaned.replace(/^\\s*\"/g, \"\"); // Remove leading quotes\n\n// Step 4: Remove any remaining quote characters that might be at line starts\ncleaned = cleaned.replace(/\\n\"/g, '\\n');\ncleaned = cleaned.replace(/\"\\n/g, '\\n');\n\n// Step 5: Trim spaces\ncleaned = cleaned.trim();\n\nreturn [\n  {\n    json: {\n      html: cleaned\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -144
+      ],
+      "id": "3b0ace2d-1755-45ba-afea-826ed8d371cd",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## DOCUMENT GENERATION PROCESS\n==============================================\n\n\n1. FORM SUBMISSION\n   - User provides title via form\n   - Workflow triggered on submission\n\n2. CONTENT GENERATION\n   - AI analyzes title and genre\n   - Creates structured document (400-600 words)\n   - Professional tone and formatting\n\n3. HTML CONVERSION\n   - Transforms content to semantic HTML5\n   - Applies responsive CSS styling\n   - Ensures cross-browser compatibility\n\n4. PDF GENERATION\n   - Sends HTML to PDF API\n   - Configures portrait orientation\n   - Sets document name: Client_Report.pdf\n\n5. DOWNLOAD\n   - Retrieves generated PDF\n   - Provides file download\n\nSTATUS: ✅ READY\n",
+        "height": 768,
+        "width": 1808
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        -480
+      ],
+      "typeVersion": 1,
+      "id": "3953e40f-a535-4278-9d64-71c7306c4286",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Role: You are an expert front-end developer and content architect. Your sole purpose is to transform raw text, Markdown, or structured documents into clean, semantic, responsive, and publication-ready HTML5 documents.\n\nCore Instruction: Convert the user-provided document into a complete, standalone HTML file. The output must be a perfectly styled, self-contained web page ready to display in any modern browser.\n\nDocument to Convert:\n\"\"\"\n{{ $json.content.parts[0].text }}\n\"\"\"\n\nComprehensive Execution Instructions:\n1. Structural & Semantic Analysis:\nThoroughly analyze the provided document to identify all elements and map them to the correct semantic HTML5 tags.\n\nMain Title: Identify the primary title for <h1>.\n\nHeadings: Map section headings to <h2>, <h3>, <h4>, etc., maintaining a logical hierarchy.\n\nParagraphs: All body text should be wrapped in <p> tags.\n\nText Formatting: Identify bold text for <strong> and italic text for <em>.\n\nLists: Convert bullet points to <ul> and numbered items to <ol>, with each item in <li> tags.\n\nBlockquotes: Identify quotations or indented text for <blockquote>.\n\nTables: If a table is present, structure it with <table>, <thead>, <tbody>, <tr>, <th>, and <td>.\n\nCode Blocks: Identify any code snippets or pre-formatted text for <pre><code>.\n\nLinks: Convert any URLs into <a href=\"...\"> tags.\n\nImages: If image descriptions or placeholders (e.g., ![alt text](image.jpg)) are found, convert them to <img src=\"...\" alt=\"...\"> tags. If no URL is provided, use a placeholder service like https://via.placeholder.com/800x400?text=Image+Placeholder.\n\n2. HTML5 Construction:\nBuild the document using strict semantic HTML5.\n\nStart with <!DOCTYPE html>.\n\nWrap everything in <html lang=\"en\">.\n\nInclude a complete <head> section with:\n\n<meta charset=\"UTF-8\">\n\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\n<title> [[Create a concise, descriptive title based on the document's content]] </title>\n\nPlace all content inside the <body> tag within a central container <div class=\"container\">.\n\n3. Universal CSS Styling Requirements:\nGenerate an embedded CSS stylesheet that provides a professional, responsive, and readable experience for all elements.\n\ncss\n <style>\n        /* Universal Document CSS - Handles any content dynamically */\n\n        /* Base Reset & Typography */\n        * {\n            box-sizing: border-box;\n            margin: 0;\n            padding: 0;\n        }\n\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            line-height: 1.6;\n            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);\n            color: #333;\n            padding: 20px;\n            min-height: 100vh;\n        }\n\n        .container {\n            max-width: 900px;\n            width: 100%;\n            background: #fff;\n            padding: 3rem;\n            margin: 0 auto;\n            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);\n            border-radius: 12px;\n            position: relative;\n        }\n\n        /* Dynamic Content Wrapper */\n        .content {\n            width: 100%;\n            overflow-wrap: break-word;\n            word-wrap: break-word;\n        }\n\n        /* Universal Typography Scale - Works with any heading structure */\n        h1,\n        .title {\n            font-size: clamp(1.8rem, 4vw, 2.5rem);\n            color: #1a202c;\n            margin: 2.5rem 0 1.5rem 0;\n            font-weight: 700;\n            border-bottom: 3px solid #4299e1;\n            padding-bottom: 0.5rem;\n            text-align: center;\n            line-height: 1.2;\n        }\n\n        h2,\n        .subtitle {\n            font-size: clamp(1.4rem, 3vw, 2rem);\n            color: #2d3748;\n            margin: 2.5rem 0 1rem 0;\n            font-weight: 600;\n            border-left: 4px solid #4299e1;\n            padding-left: 1rem;\n        }\n\n        h3,\n        .section-title {\n            font-size: clamp(1.2rem, 2.5vw, 1.5rem);\n            color: #4a5568;\n            margin: 2rem 0 1rem 0;\n            font-weight: 600;\n        }\n\n        h4,\n        h5,\n        h6,\n        .subsection-title {\n            font-size: clamp(1rem, 2vw, 1.25rem);\n            color: #718096;\n            margin: 1.5rem 0 0.75rem 0;\n            font-weight: 600;\n        }\n\n        /* Universal Paragraph Styling */\n        p,\n        .paragraph {\n            margin-bottom: 1.25rem;\n            font-size: clamp(1rem, 1.5vw, 1.1rem);\n            text-align: justify;\n            text-justify: inter-word;\n        }\n\n        /* Text Formatting */\n        strong,\n        b,\n        .bold {\n            color: #2d3748;\n            font-weight: 700;\n        }\n\n        em,\n        i,\n        .italic {\n            font-style: italic;\n            color: #4a5568;\n        }\n\n        u,\n        .underline {\n            text-decoration: underline;\n        }\n\n        mark,\n        .highlight {\n            background-color: #fed7d7;\n            padding: 2px 4px;\n            border-radius: 3px;\n        }\n\n        /* Universal Lists */\n        ul,\n        ol,\n        .list {\n            margin: 1.5rem 0;\n            padding-left: 2.5rem;\n        }\n\n        li,\n        .list-item {\n            margin-bottom: 0.75rem;\n            font-size: clamp(1rem, 1.5vw, 1.1rem);\n        }\n\n        li ul,\n        li ol {\n            margin-top: 0.5rem;\n            margin-bottom: 0.5rem;\n        }\n\n        /* Custom List Styles */\n        .bullet-list {\n            list-style-type: disc;\n        }\n\n        .number-list {\n            list-style-type: decimal;\n        }\n\n        .alpha-list {\n            list-style-type: lower-alpha;\n        }\n\n        /* Universal Blockquotes */\n        blockquote,\n        .quote {\n            background-color: #edf2f7;\n            border-left: 5px solid #4299e1;\n            padding: 1.5rem 2rem;\n            margin: 1.5rem 0;\n            font-style: italic;\n            border-radius: 0 8px 8px 0;\n            position: relative;\n        }\n\n        blockquote::before {\n            content: '\"';\n            font-size: 4rem;\n            color: #4299e1;\n            position: absolute;\n            top: -10px;\n            left: 10px;\n            line-height: 1;\n        }\n\n        /* Universal Tables */\n        table,\n        .table {\n            width: 100%;\n            border-collapse: collapse;\n            margin: 1.5rem 0;\n            font-size: clamp(0.9rem, 1.2vw, 1rem);\n            box-shadow: 0 0 0 1px #e2e8f0;\n            border-radius: 8px;\n            overflow: hidden;\n        }\n\n        th,\n        td,\n        .table-header,\n        .table-cell {\n            padding: 1rem;\n            text-align: left;\n            border: 1px solid #e2e8f0;\n        }\n\n        th,\n        .table-header {\n            background-color: #4299e1;\n            color: white;\n            font-weight: 600;\n        }\n\n        tr:nth-child(even),\n        .table-row-even {\n            background-color: #f8fafc;\n        }\n\n        /* Universal Code Blocks */\n        pre,\n        .code-block {\n            background-color: #2d3748;\n            color: #e2e8f0;\n            padding: 1.5rem;\n            border-radius: 8px;\n            overflow-x: auto;\n            margin: 1.5rem 0;\n            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n            font-size: clamp(0.8rem, 1vw, 0.9rem);\n            line-height: 1.5;\n        }\n\n        code,\n        .inline-code {\n            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n            background-color: #edf2f7;\n            padding: 0.2rem 0.4rem;\n            border-radius: 4px;\n            font-size: 0.9em;\n            color: #e53e3e;\n        }\n\n        pre code {\n            background: none;\n            padding: 0;\n            border-radius: 0;\n            color: inherit;\n        }\n\n        /* Universal Links & Media */\n        a,\n        .link {\n            color: #4299e1;\n            text-decoration: none;\n            font-weight: 500;\n            transition: all 0.2s ease;\n        }\n\n        a:hover,\n        .link:hover {\n            text-decoration: underline;\n            color: #2b6cb0;\n        }\n\n        img,\n        .image {\n            max-width: 100%;\n            height: auto;\n            display: block;\n            margin: 2rem auto;\n            border-radius: 8px;\n            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n        }\n\n        /* Universal Containers and Sections */\n        .section {\n            margin: 2rem 0;\n            padding: 1rem 0;\n        }\n\n        .card {\n            background: #f8fafc;\n            padding: 1.5rem;\n            border-radius: 8px;\n            margin: 1rem 0;\n            border: 1px solid #e2e8f0;\n        }\n\n        .info-box {\n            background: #ebf8ff;\n            border: 1px solid #4299e1;\n            padding: 1rem;\n            border-radius: 6px;\n            margin: 1rem 0;\n        }\n\n        .warning-box {\n            background: #fffbeb;\n            border: 1px solid #f6ad55;\n            padding: 1rem;\n            border-radius: 6px;\n            margin: 1rem 0;\n        }\n\n        .error-box {\n            background: #fed7d7;\n            border: 1px solid #e53e3e;\n            padding: 1rem;\n            border-radius: 6px;\n            margin: 1rem 0;\n        }\n\n        .success-box {\n            background: #f0fff4;\n            border: 1px solid #38a169;\n            padding: 1rem;\n            border-radius: 6px;\n            margin: 1rem 0;\n        }\n\n        /* Universal Dividers */\n        hr,\n        .divider {\n            border: none;\n            height: 2px;\n            background: linear-gradient(90deg, transparent, #4299e1, transparent);\n            margin: 2rem 0;\n        }\n\n        /* Universal Text Alignment */\n        .text-left {\n            text-align: left;\n        }\n\n        .text-center {\n            text-align: center;\n        }\n\n        .text-right {\n            text-align: right;\n        }\n\n        .text-justify {\n            text-align: justify;\n        }\n\n        /* Universal Spacing */\n        .margin-small {\n            margin: 0.5rem 0;\n        }\n\n        .margin-medium {\n            margin: 1rem 0;\n        }\n\n        .margin-large {\n            margin: 2rem 0;\n        }\n\n        .padding-small {\n            padding: 0.5rem;\n        }\n\n        .padding-medium {\n            padding: 1rem;\n        }\n\n        .padding-large {\n            padding: 2rem;\n        }\n\n        /* Universal Font Sizes */\n        .text-small {\n            font-size: clamp(0.8rem, 1vw, 0.9rem);\n        }\n\n        .text-medium {\n            font-size: clamp(1rem, 1.5vw, 1.1rem);\n        }\n\n        .text-large {\n            font-size: clamp(1.2rem, 2vw, 1.3rem);\n        }\n\n        /* Dynamic Content Adaptation */\n        .dynamic-content>* {\n            max-width: 100%;\n        }\n\n        .dynamic-content img,\n        .dynamic-content video,\n        .dynamic-content iframe {\n            width: 100%;\n            height: auto;\n        }\n\n        /* Print Styles */\n        @media print {\n            body {\n                background: white;\n                font-size: 12pt;\n                line-height: 1.4;\n            }\n\n            .container {\n                box-shadow: none;\n                padding: 1rem;\n                margin: 0;\n            }\n\n            h1,\n            h2,\n            h3,\n            h4,\n            h5,\n            h6 {\n                page-break-after: avoid;\n            }\n\n            p,\n            li {\n                page-break-inside: avoid;\n            }\n        }\n\n        /* Responsive Design - Mobile First */\n        @media (max-width: 900px) {\n            .container {\n                margin: 1rem;\n                padding: 2rem;\n            }\n\n            ul,\n            ol {\n                padding-left: 2rem;\n            }\n        }\n\n        @media (max-width: 600px) {\n            .container {\n                margin: 0.5rem;\n                padding: 1.5rem;\n                border-radius: 8px;\n            }\n\n            ul,\n            ol {\n                padding-left: 1.5rem;\n            }\n\n            table {\n                font-size: 0.8rem;\n            }\n\n            th,\n            td {\n                padding: 0.5rem;\n            }\n        }\n\n        @media (max-width: 400px) {\n            .container {\n                margin: 0.25rem;\n                padding: 1rem;\n            }\n\n            h1 {\n                text-align: left;\n            }\n        }\n\n        /* Dark Mode Support (if needed) */\n        @media (prefers-color-scheme: dark) {\n            body {\n                background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);\n                color: #e2e8f0;\n            }\n\n            .container {\n                background: #2d3748;\n                color: #e2e8f0;\n            }\n\n            h1,\n            h2,\n            h3,\n            h4,\n            h5,\n            h6 {\n                color: #e2e8f0;\n            }\n\n            blockquote {\n                background-color: #4a5568;\n                color: #e2e8f0;\n            }\n\n            code {\n                background-color: #4a5568;\n                color: #e2e8f0;\n            }\n\n            .card {\n                background: #4a5568;\n            }\n        }\n\n        /* Animation for smooth loading */\n        .container {\n            animation: fadeIn 0.5s ease-in;\n        }\n\n        @keyframes fadeIn {\n            from {\n                opacity: 0;\n                transform: translateY(20px);\n            }\n\n            to {\n                opacity: 1;\n                transform: translateY(0);\n            }\n        }\n    </style>\n4. Output Mandate:\nYour output must be a complete, raw, and valid HTML file. The first character must be <!DOCTYPE html>. Do not include any explanations, comments, or markdown. Only the pure HTML code.",
+              "role": "model"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -144
+      ],
+      "id": "5534a58c-0886-4dd1-a8ef-0d6411cfdea3",
+      "name": "HTML Convertor"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=**Role:** You are an expert content writer and researcher. Your task is to generate a comprehensive, well-structured, and informative document based solely on a title provided by the user.\n\n**Core Instruction:** Expand the user-provided title into a full document. Use the title as the central theme and generate all content accordingly.\n\n**Title Provided by the User:**\n\"{{ $json.Title }}\"\n\n**Steps to Follow:**\n\n1.  **Genre & Tone Analysis:** Analyze the provided title to determine the most likely genre (e.g., blog post, academic essay, news article, marketing copy, technical report) and adopt an appropriate tone (e.g., professional, conversational, persuasive, informative).\n2.  **Outline Creation:** Structure the document with relevant headings and subheadings. A logical structure is mandatory.\n3.  **Content Generation:** Write detailed, factual, and engaging content for each section. The information should be insightful and appear authoritative, as if written by a subject-matter expert.\n4.  **Formatting:** Use clear formatting like bullet points, numbered lists, and bold text where it enhances readability.\n\n**Document Requirements:**\n*   **Length:** Generate a document between 400-600 words.\n*   **Originality:** Ensure the content is original and not copied from existing sources.\n*   **Flow:** Maintain a logical flow from introduction to conclusion.\n\n**Output Format:** Deliver the complete document ready for publication. Do not add any meta-commentary like \"Sure, here is your document...\" or notes about your process. Just output the finished piece. ",
+              "role": "model"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -144
+      ],
+      "id": "89f928c0-43f4-485f-94a6-f94041aa4f55",
+      "name": "Document Writer"
+    }
+  ],
+  "connections": {
+    "Formatted Document": {
+      "main": [
+        [
+          {
+            "node": "Download Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Document Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Formatted Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Convertor": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Writer": {
+      "main": [
+        [
+          {
+            "node": "HTML Convertor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "0bd3dc87-aab2-40c7-b548-0d5258bebadc",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-08-29T08:17:08.781Z",
+      "updatedAt": "2025-08-29T08:17:08.781Z",
+      "role": "workflow:owner",
+      "workflowId": "jyXKslKxO1eiqcTK",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
