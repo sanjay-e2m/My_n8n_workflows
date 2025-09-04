@@ -1,1 +1,668 @@
-File Created for my content
+{
+  "createdAt": "2025-09-03T12:25:34.064Z",
+  "updatedAt": "2025-09-04T11:34:28.000Z",
+  "id": "XbNgTOKf6wHph3Wd",
+  "name": "N8n Github Beckup",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ec97ca29-2c34-486b-a813-8e41f26946c0",
+      "name": "Set Global Variables",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3424,
+        -768
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {
+          "timeout": 30000
+        }
+      },
+      "id": "2e68d9b0-a520-434e-8989-7b5d8e70e296",
+      "name": "Get All Workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        -3216,
+        -768
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate and prepare workflow data\nlet workflows = $json;\n\n// Handle different response structures\nif (!Array.isArray(workflows)) {\n  if (workflows.data && Array.isArray(workflows.data)) {\n    workflows = workflows.data;\n  } else {\n    workflows = [workflows];\n  }\n}\n\n// Filter and prepare workflows\nconst preparedWorkflows = workflows\n  .filter(wf => wf && wf.id && wf.name)\n  .map(workflow => ({\n    id: workflow.id,\n    name: workflow.name.replace(/[^a-zA-Z0-9-_]/g, '_'), // Sanitize filename\n    updatedAt: workflow.updatedAt,\n    active: workflow.active || false,\n    fileName: `${workflow.id}_${workflow.name.replace(/[^a-zA-Z0-9-_]/g, '_')}.json`\n  }));\n\n// Log statistics\nconsole.log(`Processing ${preparedWorkflows.length} workflows`);\n\nreturn preparedWorkflows.map(wf => ({ json: wf }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3024,
+        -768
+      ],
+      "id": "13c31a89-2b6e-4cbd-8e71-0c4f694043ce",
+      "name": "Prepare Workflow List"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2816,
+        -768
+      ],
+      "id": "d71b72d9-5896-476b-bae7-3e7b24321bfa",
+      "name": "Process in Batches"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "workflowId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "requestOptions": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        -2624,
+        -768
+      ],
+      "id": "e591ffd2-1efb-48ca-be04-36d680609dbb",
+      "name": "Get Workflow Details"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean sensitive data from workflow\nfunction sanitizeWorkflow(workflow) {\n  if (!workflow || typeof workflow !== 'object') {\n    throw new Error('Invalid workflow data');\n  }\n\n  // Create deep copy to avoid modifying original\n  const cleanWorkflow = JSON.parse(JSON.stringify(workflow));\n  \n  // Sensitive keys to remove\n  const sensitiveKeys = [\n    'credential', 'credentials', 'token', 'key', 'secret', 'auth', \n    'password', 'header', 'authorization', 'api_key', 'apikey',\n    'webhookId', 'id' // Remove internal IDs\n  ];\n\n  function deepClean(obj) {\n    if (typeof obj !== 'object' || obj === null) return obj;\n\n    // Handle arrays\n    if (Array.isArray(obj)) {\n      return obj.map(item => deepClean(item));\n    }\n\n    // Clean object properties\n    for (const key in obj) {\n      const lowerKey = key.toLowerCase();\n      \n      // Remove sensitive keys\n      if (sensitiveKeys.some(sensitive => lowerKey.includes(sensitive))) {\n        delete obj[key];\n      } else if (typeof obj[key] === 'object') {\n        obj[key] = deepClean(obj[key]);\n      }\n    }\n    return obj;\n  }\n\n  const sanitized = deepClean(cleanWorkflow);\n  \n  // Add metadata\n  sanitized.meta = {\n    ...sanitized.meta,\n    exportedAt: new Date().toISOString(),\n    exportedBy: 'n8n-backup-workflow',\n    sanitized: true\n  };\n\n  return {\n    fileName: $json.fileName,\n    workflowData: sanitized,\n    originalName: $json.name,\n    workflowId: $json.id\n  };\n}\n\ntry {\n  const result = sanitizeWorkflow($json);\n  return { json: result };\n} catch (error) {\n  console.error('Sanitization failed:', error.message);\n  return { \n    json: { \n      error: true, \n      message: error.message,\n      fileName: $json.fileName || 'unknown.json'\n    } \n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2416,
+        -768
+      ],
+      "id": "105ae895-bb55-481b-ac9e-02243936cadc",
+      "name": "Sanitize Workflow Data"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.owner'] }}",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.name'] }}",
+          "mode": "name"
+        },
+        "filePath": "={{ $('Set Global Variables').first().json['repo.path'] + $json.fileName }}",
+        "asBinaryProperty": false,
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -2224,
+        -768
+      ],
+      "id": "61a4027a-04a7-49ad-90ca-3b09567c705b",
+      "name": "Check If File Exists",
+      "webhookId": "4a36c73a-76aa-4f4c-98cd-cfdf9be01317",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "error-check"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Check If File Exists').item.json.name }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "file-exists"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Check If File Exists').item.json.name }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notExists",
+                      "singleValue": true
+                    },
+                    "id": "file-not-exists"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2016,
+        -768
+      ],
+      "id": "1571f3f3-fe2d-4f08-b313-e05f9496e622",
+      "name": "Route by Condition"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.owner'] }}",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.name'] }}",
+          "mode": "name"
+        },
+        "filePath": "={{ $('Set Global Variables').first().json['repo.path'] + $json.fileName }}",
+        "fileContent": "={{ JSON.stringify($json.workflowData, null, 2) }}",
+        "commitMessage": "=✨ Create workflow backup: {{ $json.originalName }} ({{ new Date().toISOString() }})"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -1776,
+        -592
+      ],
+      "id": "e945628b-c0e5-4f63-bb77-8254f867b05e",
+      "name": "Create New File",
+      "webhookId": "141a39d6-918e-44f1-b1c1-52ce3176ca1c"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.owner'] }}",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.name'] }}",
+          "mode": "name"
+        },
+        "filePath": "={{ $('Set Global Variables').first().json['repo.path'] + $json.fileName }}",
+        "fileContent": "={{ JSON.stringify($json.workflowData, null, 2) }}",
+        "commitMessage": "=🔄 Update workflow backup: {{ $json.originalName }} ({{ new Date().toISOString() }})"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -1776,
+        -896
+      ],
+      "id": "37e316de-73a1-4b15-8c14-bfe0bf3bd386",
+      "name": "Update Existing File",
+      "webhookId": "ed815971-0452-448c-9cc7-aafdd4a71434"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success-flag",
+              "name": "success",
+              "type": "boolean",
+              "value": "=true"
+            },
+            {
+              "id": "file-path",
+              "name": "filePath",
+              "type": "string",
+              "value": "={{ $('Set Global Variables').first().json['repo.path'] + $json.fileName }}"
+            },
+            {
+              "id": "commit-hash",
+              "name": "commitHash",
+              "type": "string",
+              "value": "={{ $json.commit?.sha || 'unknown' }}"
+            },
+            {
+              "id": "operation-type",
+              "name": "operation",
+              "type": "string",
+              "value": "={{ $runIndex === 0 ? 'created' : 'updated' }}"
+            },
+            {
+              "id": "timestamp",
+              "name": "processedAt",
+              "type": "string",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f532f0d5-02ca-4719-8194-084d7fdba2ef",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1568,
+        -672
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-flag",
+              "name": "success",
+              "type": "boolean",
+              "value": "=false"
+            },
+            {
+              "id": "error-message",
+              "name": "errorMessage",
+              "type": "string",
+              "value": "={{ $json.message || 'Unknown error during sanitization' }}"
+            },
+            {
+              "id": "file-name",
+              "name": "fileName",
+              "type": "string",
+              "value": "={{ $json.fileName }}"
+            },
+            {
+              "id": "error-timestamp",
+              "name": "errorAt",
+              "type": "string",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a350e982-9012-4645-9fd8-1608fce08c1f",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1808,
+        -1792
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Continue Processing",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        -608
+      ],
+      "id": "393bc1b2-731e-4be3-a97f-d296a10eba06"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate results and create summary\nconst allItems = $input.all();\nconst successful = allItems.filter(item => item.json.success === true);\nconst failed = allItems.filter(item => item.json.success === false);\n\nconst summary = {\n  totalWorkflows: allItems.length,\n  successful: successful.length,\n  failed: failed.length,\n  completedAt: new Date().toISOString(),\n  successfulFiles: successful.map(item => item.json.filePath || item.json.fileName),\n  failedFiles: failed.map(item => ({ \n    fileName: item.json.fileName, \n    error: item.json.errorMessage \n  }))\n};\n\n// Log summary\nconsole.log('Backup Summary:', JSON.stringify(summary, null, 2));\n\nreturn { json: summary };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        -784
+      ],
+      "id": "65683624-eafb-4fed-ac99-189756406890",
+      "name": "Create Backup Summary"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.owner'] }}",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('Set Global Variables').first().json['repo.name'] }}",
+          "mode": "name"
+        },
+        "filePath": "=backup-reports/backup_{{ new Date().toISOString().split('T')[0] }}_{{ new Date().getTime() }}.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=📊 Backup report: {{ $json.successful }}/{{ $json.totalWorkflows }} workflows backed up"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -1008,
+        -784
+      ],
+      "id": "bc05e0cc-827e-4f6f-8779-08b5b7818aeb",
+      "name": "Save Backup Report",
+      "webhookId": "20ebc6c1-2041-4460-80dd-486decb31aa5"
+    }
+  ],
+  "connections": {
+    "Set Global Variables": {
+      "main": [
+        [
+          {
+            "node": "Get All Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Workflows": {
+      "main": [
+        [
+          {
+            "node": "Prepare Workflow List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Workflow List": {
+      "main": [
+        [
+          {
+            "node": "Process in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process in Batches": {
+      "main": [
+        [
+          {
+            "node": "Create Backup Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Workflow Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workflow Details": {
+      "main": [
+        [
+          {
+            "node": "Sanitize Workflow Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitize Workflow Data": {
+      "main": [
+        [
+          {
+            "node": "Check If File Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If File Exists": {
+      "main": [
+        [
+          {
+            "node": "Route by Condition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Condition": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Existing File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New File": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing File": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Continue Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Continue Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Processing": {
+      "main": [
+        [
+          {
+            "node": "Process in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Backup Summary": {
+      "main": [
+        [
+          {
+            "node": "Save Backup Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "4036595e-9c4b-416c-8c32-5ff05496a538",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-03T12:25:34.064Z",
+      "updatedAt": "2025-09-03T12:25:34.064Z",
+      "role": "workflow:owner",
+      "workflowId": "XbNgTOKf6wHph3Wd",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
