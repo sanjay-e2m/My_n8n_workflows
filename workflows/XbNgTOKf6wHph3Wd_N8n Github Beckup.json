@@ -1,6 +1,6 @@
 {
   "createdAt": "2025-09-03T12:25:34.064Z",
-  "updatedAt": "2025-09-04T06:42:22.000Z",
+  "updatedAt": "2025-09-04T09:50:25.000Z",
   "id": "XbNgTOKf6wHph3Wd",
   "name": "N8n Github Beckup",
   "active": false,
@@ -108,15 +108,15 @@
           "value": "={{ $('Globals').item.json.repo.name }}",
           "mode": "name"
         },
-        "filePath": "=workflows/{{ $json.id }}_{{ $json.name }}.json",
-        "fileContent": "={{ $json.id }}/{{ $json.name }}",
+        "filePath": "=workflows/{{ $json.file_name }}",
+        "fileContent": "empty",
         "commitMessage": "first commit"
       },
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        -2672,
-        80
+        -1552,
+        96
       ],
       "id": "ad9a8e84-f1d4-4f9c-aa00-8fe0e3bfff11",
       "name": "Create a file",
@@ -162,8 +162,8 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        -2048,
-        80
+        -1088,
+        96
       ],
       "id": "89737b96-3624-4d02-a060-86b9d2064c4b",
       "name": "Edit a file",
@@ -171,12 +171,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const workflow = $('n8n - get all workflows').first().json;\nconst file_path = $input.first().json.content.name\n// remove or mask credentials if present\nif (workflow.credentials) {\n  for (const credName in workflow.credentials) {\n    workflow.credentials[credName] = \"*****\"; // mask secrets\n  }\n}\n\n// wrap inside a custom key\nreturn {\n  json: {\n    workflow: workflow,\n    file_name: file_path\n  }\n};\n"
+        "jsCode": "const workflow = $('Code1').first().json.workflow;\nconst fileName = $input.first().json.content.name;\n\n// Recursive cleaner\nfunction deepClean(obj) {\n  if (typeof obj !== 'object' || obj === null) return obj;\n\n  for (const key in obj) {\n    // Remove auth/secret related keys\n    if (\n      key.toLowerCase().includes('credential') ||\n      key.toLowerCase().includes('token') ||\n      key.toLowerCase().includes('key') ||\n      key.toLowerCase().includes('secret') ||\n      key.toLowerCase().includes('auth') ||\n      key.toLowerCase().includes('password') ||\n      key.toLowerCase().includes('header')\n    ) {\n      delete obj[key];\n    } else if (typeof obj[key] === 'object') {\n      obj[key] = deepClean(obj[key]);\n    }\n  }\n  return obj;\n}\n\nconst cleanWorkflow = deepClean(JSON.parse(JSON.stringify(workflow)));\n\nreturn {\n  json: {\n    file_name: fileName,\n    workflow: cleanWorkflow\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2240,
+        -1312,
         96
       ],
       "id": "519485e6-1adb-439a-9f23-71b446d8ae7c",
@@ -189,7 +189,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -2464,
+        -2640,
         80
       ],
       "id": "89129153-ed79-4f57-a83d-817d008c28f8",
@@ -201,10 +201,66 @@
       "name": "Replace Me",
       "typeVersion": 1,
       "position": [
-        -1840,
-        80
+        -848,
+        96
       ],
       "id": "ed2d4524-9327-4d7a-a89b-fce26f617ff6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle both cases: array or object with array inside\nlet workflows = $json;\n\n// If the data is wrapped inside { data: [...] } or similar\nif (!Array.isArray(workflows) && Array.isArray(workflows.data)) {\n  workflows = workflows.data;\n}\n\n// If it's still not an array, wrap it\nif (!Array.isArray(workflows)) {\n  workflows = [workflows];\n}\n\nreturn workflows.map(wf => {\n  return {\n    json: {\n      workflow: wf,\n      file_name: `${wf.id}_${wf.name}.json`\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2384,
+        96
+      ],
+      "id": "14a2f0ca-11c4-4c5f-bca6-a044129fb35c",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "sanjay-e2m",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "My_n8n_workflows",
+          "mode": "list",
+          "cachedResultName": "My_n8n_workflows",
+          "cachedResultUrl": "https://github.com/sanjay-e2m/My_n8n_workflows"
+        },
+        "filePath": "/workflows/",
+        "asBinaryProperty": false,
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -2176,
+        96
+      ],
+      "id": "3db50943-35e0-4588-bd91-0716115b93d8",
+      "name": "Get a file",
+      "webhookId": "f2000f07-3d6e-44b4-b1a4-4a3e6579689d"
+    },
+    {
+      "parameters": {
+        "jsCode": "const file_name = $('Code1').first().json.file_name;  \nconst workflowId_new = file_name.split(\"_\")[0];  \n\nconst results = $input.all().map(item => {\n  const fileName = item.json.name;   // or item.json.content.name if nested\n  const workflowId = fileName.split(\"_\")[0];\n\n  return {\n    file_name: fileName,\n    workflow_id: workflowId,\n    workflowId_new: workflowId_new,\n    isCommon: workflowId === workflowId_new   // true if same, false if not\n  };\n});\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1968,
+        96
+      ],
+      "id": "e8fa1fbb-c77d-4282-b715-1c56e98c468b",
+      "name": "Code2"
     }
   ],
   "connections": {
@@ -256,7 +312,7 @@
       "main": [
         [
           {
-            "node": "Create a file",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -267,7 +323,7 @@
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "Code",
             "type": "main",
             "index": 0
           }
@@ -290,7 +346,7 @@
         [],
         [
           {
-            "node": "Code",
+            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -318,6 +374,39 @@
           }
         ]
       ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Create a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -328,7 +417,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "07f78bd1-57c3-48e0-b91d-6f5aff851ac6",
+  "versionId": "a7387f4a-c509-496f-b330-00ea849919dd",
   "triggerCount": 0,
   "shared": [
     {
