@@ -60,7 +60,7 @@
             "projectId": "nSUbNPn8P23MJaxQ",
             "user": {
               "createdAt": "2025-08-19T13:24:42.285Z",
-              "updatedAt": "2025-09-04T04:38:19.000Z",
+              "updatedAt": "2025-09-16T09:46:32.000Z",
               "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
               "email": "sanjay.makwana@e2m.solutions",
               "firstName": "Sanjay",
@@ -94,7 +94,7 @@
               "role": "global:owner",
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-09-04",
+              "lastActiveAt": "2025-09-16",
               "isPending": false
             }
           }
