@@ -1,1 +1,199 @@
-File Created for my content
+{
+  "createdAt": "2025-09-05T12:10:07.405Z",
+  "updatedAt": "2025-09-09T13:20:07.000Z",
+  "id": "uyaqBwm6dOUJQY7c",
+  "name": "Query QuickBooks Online Customer Data with GPT-4.1-mini via Chat Interface",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "id": "cf9bd463-2750-4875-a88f-a9535e08818e",
+      "name": "Public Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        224,
+        448
+      ],
+      "webhookId": "48cd7e7c-fa0f-44f3-834f-89900ebaf0b1",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4bbdb079-41a4-4067-83db-0464e4cd3ec8",
+      "name": "QuickBooks AI Agent Orchestrator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        448,
+        448
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "id": "ee43e911-7c9a-43e3-a00d-8dfd9ab2bc6c",
+      "name": "LLM - OpenAI Chat (gpt-4.1-mini)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        448,
+        640
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {}
+      },
+      "id": "e74594a9-eaab-431b-a5a7-0c3582348e14",
+      "name": "AI Tool - QuickBooks Data",
+      "type": "n8n-nodes-base.quickbooksTool",
+      "position": [
+        592,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Workflow description\n\nTalk to QuickBooks in plain language. The agent reads your chat text, calls QuickBooks when needed, and replies.\n\n## Steps\n1) **Public Chat Trigger** - receives a chat message.\n2) **QuickBooks AI Agent Orchestrator** - decides when to use tools and how to answer.\n3) **LLM - OpenAI Chat (gpt-4.1-mini)** - the language model used by the agent.\n4) **AI Tool - QuickBooks Data** - exposes QuickBooks data to the agent (customers now, extend later).\n\n## Setup\n- OpenAI API credential connected.\n- QuickBooks Online OAuth2 connected.\n- Trigger is public - add auth if you need to restrict access.\n\n## Tips\n- Add more QBO operations (invoices, payments, items).\n- Add other tools (Sheets, DBs, HTTP APIs) for richer answers.\n- Use guardrails in the agent prompt if you need strict behavior.",
+        "height": 912,
+        "width": 272,
+        "color": 5
+      },
+      "id": "e07a92ec-e752-4eb1-8b49-4fd6801b791e",
+      "name": "Workflow description",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        144
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Public Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks AI Agent Orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Tool - QuickBooks Data": {
+      "ai_tool": [
+        [
+          {
+            "node": "QuickBooks AI Agent Orchestrator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM - OpenAI Chat (gpt-4.1-mini)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "QuickBooks AI Agent Orchestrator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "046d4f3f-3059-4ed2-80c4-f43f02e8444c",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-05T12:10:07.412Z",
+      "updatedAt": "2025-09-05T12:10:07.412Z",
+      "role": "workflow:owner",
+      "workflowId": "uyaqBwm6dOUJQY7c",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "role": "project:personalOwner",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-09-16T09:46:32.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "role": "global:owner",
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-09-16",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
