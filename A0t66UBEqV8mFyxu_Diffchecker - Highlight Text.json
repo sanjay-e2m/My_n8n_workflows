@@ -1,1 +1,196 @@
-File Created for my content
+{
+  "createdAt": "2025-09-17T11:30:24.659Z",
+  "updatedAt": "2025-09-18T09:54:58.000Z",
+  "id": "A0t66UBEqV8mFyxu",
+  "name": "Diffchecker - Highlight Text",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "cf0fd559-54fc-4f3f-b4a2-66881f1691df",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.diffchecker.com/public/text?output_type=html&diff_level=word&email=sanjay.makwana@e2m.solutions",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "left",
+              "value": "={{ $json.Left }}"
+            },
+            {
+              "name": "right",
+              "value": "={{ $json.Right }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d3f79aff-4837-4f82-aed6-495b6e846b83",
+      "name": "HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "052c71df-85dc-4700-b272-a78d63230785",
+              "name": "Left",
+              "value": "# Existing content structure and details  Relocating to another part of the country and curious about how much it will cost you? We're here to discuss the ins and outs of a cross-country move and how you can plan and save before you get going. Understanding the average cost of cross-country movers will help make your trip a breeze when it's time to relocate.  Learn more: * How to Hire An Interstate Moving Company: Steps to Choose a Mo * How Long Does It Take Movers to Move Cross-Count  ## How to Calculate the Cost of Cross-Country Movers Figuring out the cost of movers out-of-state can feel like a puzzle, but it's fairly straightforward once you know the key pieces. The main things that influence your cross-country movers cost are the distance you're moving, the amount you're taking, and the services you choose. Knowing your options will help you create a plan that works for your time and budget.  One of the biggest factors is the size of your home, as it directly relates to the volume and weight of your belongings. Here's a general idea of what you might expect for the average cost of cross-country movers based on house size and distance:     ## Factors Affecting Cross-Country Movers Cost  When planning a cross-country move, understanding the various factors that influence the overall cost is crucial. Each element plays a significant role in determining your final moving expenses. Here’s a breakdown of the key factors:  ### Moving Distance  The distance of your move is a primary cost driver. Naturally, moving from coast to coast will be more expensive than moving to a neighboring state. Long-distance moves involve more fuel, labor hours, and potential overnight stays for the moving crew, all of which contribute to higher costs.  ### Transportation Methods  The method you choose to transport your belongings significantly impacts the price. Options range from full-service movers who handle everything to DIY moves with rental trucks or moving containers. Each comes with its own set of costs and benefits.  ### The Size of Your House  The volume and weight of your possessions directly correlate with the size of your home. A larger house typically means more items to move, requiring a larger truck, more packing materials, and additional labor. This is often calculated by the number of bedrooms or the total square footage.  ### Movers  The type of moving service you select will affect the cost. Full-service movers offer convenience but come at a premium, while hiring labor-only movers or doing most of the work yourself can save money.  ### Packing Supplies  Boxes, tape, bubble wrap, and other packing materials can add up quickly. While you can source some materials for free, purchasing specialized boxes for fragile items or wardrobe boxes for clothes will increase your expenses.  ### Time of Year  Moving during peak season (summer months, holidays, and end-of-month) is generally more expensive due to higher demand. Off-peak seasons offer more competitive pricing and greater availability.  ### Additional Services  Services like packing and unpacking, disassembling and reassembling furniture, or specialty item handling (pianos, antiques) will add to your total cost. Be sure to discuss all potential additional services with your mover upfront.  ### Moving Insurance  Protecting your belongings during a cross-country move is essential. Moving insurance, or valuation coverage, offers different levels of protection for your items in case of loss or damage. The cost varies based on the coverage level you choose.  ### Fuel  Fuel costs are a significant component of any long-distance move, especially with fluctuating gas prices. If you’re driving a rental truck, you’ll be responsible for these costs directly. Full-service movers typically factor fuel into their overall quote.  ### Hotel and Food  Don’t forget to budget for personal expenses during your move. This includes accommodation, meals, and other incidentals for yourself and your family, especially if your journey spans several days.  ## Why is moving cross-country or long-distance so expensive?  Moving cross-country involves a complex logistical process that incurs significant costs. Here are the primary reasons why long-distance moves can be expensive:  *   **Distance and Fuel:** The sheer mileage covered means higher fuel consumption and wear and tear on vehicles. *   **Labor Costs:** Multiple days of labor are often required for loading, driving, and unloading, increasing hourly wages for movers. *   **Logistics and Planning:** Coordinating a move across state lines requires extensive planning, permits, and adherence to various regulations. *   **Equipment and Resources:** Specialized trucks, moving equipment, and storage facilities (if needed) all contribute to the overhead. *   **Valuation Coverage:** The cost of protecting your belongings during transit adds to the overall expense.  ## How to lower the cost of a cross-country move or long-distance move  Moving across the country doesn't have to break the bank. With careful planning and smart choices, you can significantly reduce your expenses. Here are some effective strategies:  ### 1. Downsize your household  The less you move, the less it costs. Go through your belongings and declutter ruthlessly. Sell, donate, or discard items you no longer need or use. This reduces the weight and volume of your shipment, directly lowering your moving costs.  ### 2. Find free packing materials  Instead of buying new boxes, look for free ones at local grocery stores, liquor stores, or online community groups. Reusing packing materials can save a considerable amount.  ### 3. Ask for help from friends and family  Enlist the help of friends and family for packing, loading, and unloading. Their assistance can save you money on labor costs and make the moving process more enjoyable.  ### 4. Pack your own boxes  Full-service packing is convenient but expensive. By packing your own boxes, you can save a significant portion of your moving budget. Just be sure to pack carefully to prevent damage.  ### 5. Move during the off-season  Avoid moving during peak season (summer, holidays). Moving in the fall, winter, or spring, especially mid-week or mid-month, can result in lower rates and more flexible scheduling.  ### 6. Get multiple moving quotes  Don't settle for the first quote you receive. Contact several reputable moving companies and compare their estimates. This allows you to find the best value and negotiate prices.  ### 7. Look for possible discounts and deals  Many moving companies offer discounts for military personnel, seniors, students, or AAA members. Inquire about any available promotions or deals that could reduce your overall cost.  ## Trusted and High-Rated Cross-Country Movers by Stewart Moving & Storage  At Stewart Moving & Storage, we understand that a cross-country move is a significant undertaking. We pride ourselves on providing transparent pricing, reliable service, and personalized moving plans to make your long-distance relocation as smooth and stress-free as possible. Our team of experienced professionals is dedicated to upholding our core values of truth, honesty, and integrity, ensuring your belongings are handled with the utmost care.  We offer a range of services tailored to your specific needs, from full-service packing and loading to secure storage solutions. With top-tier equipment and highly trained employees, we strive to exceed your expectations. Whether you're moving to or from Richmond, Jacksonville, Pensacola, Raleigh, Fayetteville, St Petersburg, Dover, or Baltimore, trust Stewart Moving & Storage to deliver a high-quality moving experience.  Get a free, no-obligation quote today and discover why countless families choose us for their cross-country moving needs.  ## FAQs about the Average Cost of Cross-Country Movers  ### How much do movers cost cross-country?  The cost of cross-country movers varies widely based on factors like distance, the volume of your belongings, and the services you choose. On average, a cross-country move can range from $2,000 to $10,000 or more. It's best to get a personalized quote for an accurate estimate.  ### What is the cheapest way to move across the country?  The cheapest way to move across the country is typically a DIY move using a rental truck. While it requires more effort on your part, it significantly reduces labor costs. Moving containers are another cost-effective option, offering a middle ground between DIY and full-service movers.  ### How much does it cost to move a 3-bedroom house across the country?  Moving a 3-bedroom house across the country can cost anywhere from $3,500 to $15,000, depending on the distance, the amount of belongings, and the services requested. Full-service moves will be at the higher end of this range.  ### How much money should I have to move across the country?  It's recommended to have at least 10-20% more than your estimated moving costs saved for unexpected expenses. This buffer will help cover incidentals, potential delays, or additional services you might need.  ### How much does it cost to move a 2,000 sq. ft. house?  Moving a 2,000 sq. ft. house across the country typically falls within the range of $4,000 to $12,000. This estimate can fluctuate based on the specific services, distance, and the total weight of your household goods.  ### Are moving costs tax-deductible?  For most individuals, moving costs are generally not tax-deductible. However, there are exceptions for active-duty military members who move due to a permanent change of station. Consult a tax professional for personalized advice.",
+              "type": "string"
+            },
+            {
+              "id": "72b7a8c3-611f-4f7f-87e3-58f09c3b341c",
+              "name": "Right",
+              "value": " Title: Average Cost of Cross-Country Movers | Cross-Country  Movers Cost Description: Discover the real average cost to hire movers cross- country with Stewart Moving & Storage, compare options, and  learn money-saving tips to make your long-distance relocation  affordable and low-stress. Average Cost of Cross-Country Movers Relocating to another part of the country is an exciting, yet often daunting, prospect. One of  the first questions that comes to mind is, \"How much will it cost?\" At Stewart Moving &  Storage, we believe in transparency and empowering our customers with the knowledge they  need to plan a successful move. This comprehensive guide will break down the average cost  of cross country movers, explore the factors that influence pricing, and provide actionable  advice to help you manage your budget and make your long-distance relocation as smooth  and stress-free as possible. Understanding the cross country movers cost upfront will help  you make informed decisions and avoid unexpected expenses. Average cost of cross country movers The average cost of cross country movers can vary significantly, typically ranging from  $2,390 to $6,868, with an overall average around $4,571 [1]. However, it's important to  understand that these are just averages, and your specific cross country movers cost will  depend on a multitude of factors, including the distance of your move, the volume and weight of your belongings, and the specific services you choose. Some sources indicate a broader  range, with costs potentially going from $4,400 to $17,000 [2] for a full-service move,  especially for larger homes or longer distances. For instance, moving several hundred miles might cost up to $2,500, while a cross-country  move from one coast to another could reach up to $10,300 [1]. The size of your home also  plays a crucial role. A studio or 1-bedroom apartment might cost between $700 and $3,000  to move cross-country, whereas a 6-bedroom house could cost anywhere from $4,000 to  $15,000 [1]. These figures highlight the importance of getting a personalized quote to  accurately estimate your moving expenses. How to calculate cross country movers costs Calculating the cost of a cross-country move can seem complex, but understanding the key  components involved can help you estimate your expenses more accurately. While  professional moving companies like Stewart Moving & Storage provide detailed quotes, you  can get a preliminary idea by considering factors such as the distance of your move, the total  weight or volume of your belongings, and any additional services you might require. Many  online tools, such as the Allied Van Lines Cross-Country Moving Cost Calculator, can help  you get a fast, free cost estimate by inputting your moving details [3]. When calculating your potential costs, consider: • Distance: Longer distances generally mean higher fuel costs, more labor hours, and  increased logistical planning. • Volume/Weight of Belongings: The more items you move, the more space they  occupy in a truck, and the heavier they are, directly impacting the cost. Movers often  use the number of bedrooms as a proxy for the volume of goods. • Services Required: Do you need full packing and unpacking services, or will you  handle that yourself? Are there specialty items like pianos or antiques that require  special handling? • Time of Year: Moving during peak seasons (summer, holidays) can increase costs  due to higher demand. By taking these elements into account, you can begin to form a realistic budget for your  cross-country relocation. Remember, these calculations provide an estimate, and a detailed  quote from a reputable mover is always the most accurate way to determine your final cross  country movers cost. Factors affecting cross-country movers cost When planning a cross-country move, understanding the various factors that influence the  overall cross country movers cost is crucial. Each element plays a significant role in  determining your final moving expenses. Here’s a breakdown of the key factors: Moving distance The distance of your move is a primary cost driver. Naturally, moving from coast to coast  will be more expensive than moving to a neighboring state. Long-distance moves involve  more fuel, labor hours, and potential overnight stays for the moving crew, all of which  contribute to higher costs. [CHANGED] For example, a local move (within 100 miles) might  cost under $1,000, while a cross-country move could reach up to $7,000 or more [2]. Transportation methods The method you choose to transport your belongings significantly impacts the price. Options  range from full-service movers who handle everything to DIY moves with rental trucks or  moving containers. Each comes with its own set of costs and benefits. [ADDED] For  instance, full-service movers typically cost more due to the comprehensive services provided, while renting a moving truck is generally the most budget-friendly option, albeit requiring  more personal effort [1]. The size of your house The volume and weight of your possessions directly correlate with the size of your home. A  larger house typically means more items to move, requiring a larger truck, more packing  materials, and additional labor. This is often calculated by the number of bedrooms or the  total square footage. [CHANGED] As a general guideline, moving a 1-bedroom apartment  cross-country could cost between $700 and $3,000, whereas a 4-bedroom house might range  from $1,800 to $10,000 [1]. Movers The type of moving service you select will affect the cost. Full-service movers offer  convenience but come at a premium, while hiring labor-only movers or doing most of the  work yourself can save money. [ADDED] Stewart Moving & Storage offers personalized  moving plans to fit various needs and budgets, ensuring you get the right level of service for  your relocation. Packing supplies Boxes, tape, bubble wrap, and other packing materials can add up quickly. While you can  source some materials for free, purchasing specialized boxes for fragile items or wardrobe  boxes for clothes will increase your expenses. [CHANGED] Professional packing services, if  opted for, can add approximately $70 per hour to your costs [2]. Time of year Moving during peak season (summer months, holidays, and end-of-month) is generally more  expensive due to higher demand. Off-peak seasons offer more competitive pricing and  greater availability. [CHANGED] The peak moving season typically runs from May through  September, so planning your move outside these months can lead to significant savings [2]. Additional services Services like packing and unpacking, disassembling and reassembling furniture, or specialty  item handling (pianos, antiques) will add to your total cost. Be sure to discuss all potential  additional services with your mover upfront. [ADDED] Specialty services for items like  pianos can add $300 to $1,500 to your total bill [2]. Moving valuation coverage [CHANGED] Protecting your belongings during a cross-country move is essential. Moving  valuation coverage, not insurance, offers different levels of protection for your items in case  of loss or damage. The cost varies based on the coverage level you choose. [CRITICAL]  Stewart Moving & Storage emphasizes using \"valuation coverage\" to comply with industry  regulations and provide transparent options for protecting your possessions. Fuel Fuel costs are a significant component of any long-distance move, especially with fluctuating  gas prices. If you’re driving a rental truck, you’ll be responsible for these costs directly. Full- service movers typically factor fuel into their overall quote. [ADDED] For DIY moves, fuel  can be a substantial, variable expense, so it's wise to budget generously for this. Hotel and food Don’t forget to budget for personal expenses during your move. This includes  accommodation, meals, and other incidentals for yourself and your family, especially if your  journey spans several days. [ADDED] These often overlooked costs can quickly add up, so  factor them into your overall moving budget. Cross-Country Moving Cost Breakdown [ADDED] Choosing the right moving method is crucial for managing your budget and stress  levels during a cross-country relocation. Here’s a detailed cost comparison between the three  main options: Full-Service Movers Full-service movers, like Stewart Moving & Storage, handle every aspect of your move, from packing and loading to transportation and unloading. This option offers the most convenience and peace of mind, but it comes at a higher price. • Average Cost: The average cost of cross country movers for a full-service move  typically ranges from $4,000 to $9,000, but can go higher depending on the size of  your home and the distance of the move. Some estimates place the range between  $5,032 and $7,803 [4]. • What's Included: Professional packing and unpacking, furniture disassembly and  reassembly, loading and unloading, transportation, and basic valuation coverage. • Pros: Stress-free, efficient, and your belongings are handled by experienced  professionals. • Cons: The most expensive option. Moving Containers Moving containers, such as those offered by PODS or U-Pack, provide a flexible, hybrid  solution. The company drops off a container, you load it at your own pace, and then they  transport it to your new home. • Average Cost: A cross-country move with a moving container typically costs  between $2,843 and $5,136 [4]. The price can vary significantly based on the  container size and the duration of the rental. • What's Included: Container rental, transportation, and drop-off/pickup services. • Pros: More affordable than full-service movers, flexible loading schedule, and can  double as a temporary storage solution. • Cons: You are responsible for all the packing, loading, and unloading. DIY Moves (Rental Trucks) A DIY move with a rental truck from a company like U-Haul or Budget is the most budget- friendly option, but it requires the most effort on your part. • Average Cost: Renting a truck for a cross-country move can cost between $1,785  and $3,493 [4]. This does not include the cost of fuel, which can be substantial for a  long-distance move. • What's Included: Truck rental for a specified period and mileage. • Pros: The cheapest option, giving you full control over your move. • Cons: You are responsible for everything, including driving the truck, which can be  stressful and physically demanding. You also need to factor in additional costs like  fuel, insurance, and potential hotel stays. Moving Option Average Cost Range (Cross- Country) Best For Full-Service Movers $4,000 - $9,000+ Those who prioritize convenience  and a stress-free experience. Moving Containers $2,800 - $5,200 Those who want a balance of  affordability and convenience,  with a flexible timeline. DIY Rental Truck $1,800 - $3,500+ (plus fuel) Those on a tight budget who are  willing to handle all the physical  labor. Why is moving cross-country or long-distance so expensive? [CHANGED] Moving cross-country involves a complex logistical process that incurs  significant costs. Here are the primary reasons why long-distance moves can be expensive: • Distance and Fuel: The sheer mileage covered means higher fuel consumption and  wear and tear on vehicles. Fuel is a major expense for any long-distance move. • Labor Costs: Multiple days of labor are often required for loading, driving, and  unloading, increasing hourly wages for movers. A cross-country move is a multi-day  job for the moving crew. • Logistics and Planning: Coordinating a move across state lines requires extensive  planning, permits, and adherence to various regulations. This administrative overhead  adds to the cost. • Equipment and Resources: Specialized trucks, moving equipment, and storage  facilities (if needed) all contribute to the overhead. Reputable moving companies  invest in top-tier equipment to ensure the safety of your belongings. • Valuation Coverage: The cost of protecting your belongings during transit adds to  the overall expense. While basic valuation is included, many customers opt for  additional protection for peace of mind. How to lower the cost of a cross-country move or long-distance  move Moving across the country doesn't have to break the bank. With careful planning and smart  choices, you can significantly reduce your expenses. Here are some effective strategies to  lower your cross country movers cost: 1. Downsize your household The less you move, the less it costs. Go through your belongings and declutter ruthlessly.  Sell, donate, or discard items you no longer need or use. This reduces the weight and volume  of your shipment, directly lowering your moving costs. [ADDED] Consider hosting a garage  sale or donating items to local charities before your move. 2. Find free packing materials Instead of buying new boxes, look for free ones at local grocery stores, liquor stores, or  online community groups. Reusing packing materials can save a considerable amount.  [ADDED] Many community groups on social media platforms are excellent resources for  free moving boxes. 3. Ask for help from friends and family Enlist the help of friends and family for packing, loading, and unloading. Their assistance can save you money on labor costs and make the moving process more enjoyable. [ADDED]  Offer to provide food and drinks as a thank you for their invaluable help. 4. Pack your own boxes Full-service packing is convenient but expensive. By packing your own boxes, you can save a significant portion of your moving budget. Just be sure to pack carefully to prevent damage.  [ADDED] Stewart Moving & Storage can provide guidance on proper packing techniques to  ensure your items are secure. 5. Move during the off-season Avoid moving during peak season (summer, holidays). Moving in the fall, winter, or spring,  especially mid-week or mid-month, can result in lower rates and more flexible scheduling.  [CHANGED] The period between October and April is generally considered the off-season  for moving, offering better deals and availability. 6. Get multiple moving quotes Don't settle for the first quote you receive. Contact several reputable moving companies and  compare their estimates. This allows you to find the best value and negotiate prices.  [ADDED] Stewart Moving & Storage encourages you to get a free, no-obligation quote to  compare our transparent pricing with other providers. 7. Look for possible discounts and deals Many moving companies offer discounts for military personnel, seniors, students, or AAA  members. Inquire about any available promotions or deals that could reduce your overall  cost. [ADDED] Stewart Moving & Storage proudly offers military and senior discounts as  part of our commitment to serving our community. Trusted and High-Rated Cross-Country Movers by Stewart  Moving & Storage At Stewart Moving & Storage, we understand that a cross-country move is a significant  undertaking. We pride ourselves on providing transparent pricing, reliable service, and  personalized moving plans to make your long-distance relocation as smooth and stress-free as possible. Our team of experienced professionals is dedicated to upholding our core values of  truth, honesty, and integrity, ensuring your belongings are handled with the utmost care. We  strive to offer competitive cross country movers cost without compromising on quality. We offer a range of services tailored to your specific needs, from full-service packing and  loading to secure storage solutions. With top-tier equipment and highly trained employees,  we strive to exceed your expectations. Whether you're moving to or from Richmond,  Jacksonville, Pensacola, Raleigh, Fayetteville, St Petersburg, Dover, or Baltimore, trust  Stewart Moving & Storage to deliver a high-quality moving experience. Our goal is to  provide exceptional service that justifies the average cost of cross country movers and  delivers true value. Get a free, no-obligation quote today and discover why countless families choose us for their  cross-country moving needs. FAQs about the Average Cost of Cross-Country Movers What factors affect the cost of cross country movers? [ADDED] The primary factors affecting the cross country movers cost include the distance  of your move, the total weight and volume of your belongings, the type of services you  require (e.g., packing, unpacking), the time of year you move, and any additional services  like specialty item handling or storage. The chosen valuation coverage also plays a role in the overall expense. What is the average cost of a cross-country move? [ADDED] The average cost of cross country movers typically ranges from $2,390 to  $6,868, with an overall average around $4,571. However, this can vary significantly based on factors like home size, distance, and services. For a full-service move, costs can range from  $4,400 to $17,000 depending on specific circumstances. Are there hidden fees in cross-country moving cost estimates? [ADDED] Reputable moving companies like Stewart Moving & Storage strive for  transparency in their estimates. However, potential additional costs can arise from unforeseen circumstances or services not initially included, such as shuttle services for difficult access,  long-carry fees, or additional valuation coverage. Always ask for a detailed, binding estimate  to minimize surprises and clarify what is and isn't included. How much do movers cost cross-country? [CHANGED] The cost of cross-country movers varies widely based on factors like distance,  the volume of your belongings, and the services you choose. On average, a cross-country  move can range from $2,000 to $10,000 or more. It's best to get a personalized quote for an  accurate estimate, as prices can go up to $17,000 for larger homes or extensive services. What is the cheapest way to move across the country? [CHANGED] The cheapest way to move across the country is typically a DIY move using a  rental truck, which can cost between $1,785 and $3,493 (excluding fuel). While it requires  more effort on your part, it significantly reduces labor costs. Moving containers are another  cost-effective option, offering a middle ground between DIY and full-service movers, with  costs typically ranging from $2,843 to $5,136. How much does it cost to move a 3-bedroom house across the country? [CHANGED] Moving a 3-bedroom house across the country can cost anywhere from $3,500  to $15,000, depending on the distance, the amount of belongings, and the services requested.  Full-service moves will be at the higher end of this range, potentially reaching $9,000 to  $12,000+ for longer distances [2]. How much money should I have to move across the country? [CHANGED] It's recommended to have at least 10-20% more than your estimated moving  costs saved for unexpected expenses. This buffer will help cover incidentals, potential delays, or additional services you might need, ensuring a smoother transition without financial stress. How much does it cost to move a 2,000 sq. ft. house? [CHANGED] Moving a 2,000 sq. ft. house across the country typically falls within the range  of $4,000 to $12,000. This estimate can fluctuate based on the specific services, distance, and the total weight of your household goods. For a 4-bedroom house, which is often around  2,000 sq. ft., costs can range from $1,800 to $10,000 [1]. Are moving costs tax-deductible? [CHANGED] For most individuals, moving costs are generally not tax-deductible. However,  there are exceptions for active-duty military members who move due to a permanent change  of station. Always consult a tax professional for personalized advice regarding your specific  situation. References [1] Angi.com. (2025, February 9). How Much Does It Cost To Move Across The Country.  Retrieved from https://www.angi.com/articles/how-much-does-long-distance-move-cost.htm [2] Forbes.com. (2025, June 2). How Much Do Movers Cost In 2025?. Retrieved from  https://www.forbes.com/home-improvement/moving-services/movers-and-packers-cost/ [3] Allied.com. Cross Country Moving Cost Calculator. Retrieved from  https://www.allied.com/moving-resources/tools-forms/cross-country-moving-cost-calculator [4] MoveBuddha.com. (2024, November 27). The Cheapest Ways to Move Cross-Country  (2025 Guide). Retrieved from https://www.movebuddha.com/blog/the-cheapest-ways-to- move-cross-country/",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1fdce504-8ffc-4df1-ae13-fa6632305720",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## I'm a Diffchecker \n**Find Difference Between two different text data.**",
+        "height": 384,
+        "width": 912,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "5b975d38-8d87-480c-a2be-5690d8e03844",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9fc78210-c61c-4c0c-9b8f-a04fd9d35cdf",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-17T11:30:24.666Z",
+      "updatedAt": "2025-09-17T11:30:24.666Z",
+      "role": "workflow:owner",
+      "workflowId": "A0t66UBEqV8mFyxu",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
