@@ -1,1 +1,210 @@
-File Created for my content
+{
+  "createdAt": "2025-10-04T06:54:56.433Z",
+  "updatedAt": "2025-10-04T06:55:34.000Z",
+  "id": "5rv3slDkAXYOQl7x",
+  "name": "Green Vegitable Ads",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "name": "Start",
+      "type": "ManualTrigger",
+      "position": [
+        200,
+        200
+      ],
+      "typeVersion": 1,
+      "parameters": {}
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-2345-67890abcdef1",
+      "name": "GoogleSheets",
+      "type": "googleSheets",
+      "position": [
+        400,
+        200
+      ],
+      "typeVersion": 2,
+      "parameters": {
+        "spreadsheetId": "your_spreadsheet_id",
+        "range": "Sheet1!A1:B10",
+        "operation": "get",
+        "options": {}
+      }
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-3456-7890abcdef12",
+      "name": "ItemLists",
+      "type": "ItemLists",
+      "position": [
+        600,
+        200
+      ],
+      "typeVersion": 1,
+      "parameters": {
+        "values": [
+          {
+            "name": "vegetable",
+            "value": "={{$json.values}}"
+          },
+          {
+            "name": "ad_copy",
+            "value": "Get your fresh {{$json.values}} today!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d4e5f6a7-b8c9-0123-4567-890abcdef123",
+      "name": "CreateAds",
+      "type": "Function",
+      "position": [
+        800,
+        200
+      ],
+      "typeVersion": 1,
+      "parameters": {
+        "jsCode": "items.forEach(item => {\n  item.json.ad_title = `Fresh ${item.json.vegetable} for Sale`;\n  item.json.ad_description = `Get the best ${item.json.vegetable} in town!`;\n});\n\nreturn items;"
+      }
+    },
+    {
+      "id": "e5f6a7b8-c9d0-2345-6789-0abcdef12345",
+      "name": "SendToAdPlatform",
+      "type": "NoOp",
+      "position": [
+        1000,
+        200
+      ],
+      "typeVersion": 1,
+      "parameters": {
+        "option": "true"
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "GoogleSheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GoogleSheets": {
+      "main": [
+        [
+          {
+            "node": "ItemLists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ItemLists": {
+      "main": [
+        [
+          {
+            "node": "CreateAds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateAds": {
+      "main": [
+        [
+          {
+            "node": "SendToAdPlatform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "bb9083fb-23ad-40e5-9ba6-dace13d51c2d",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-10-04T06:54:56.433Z",
+      "updatedAt": "2025-10-04T06:54:56.433Z",
+      "role": "workflow:owner",
+      "workflowId": "5rv3slDkAXYOQl7x",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
