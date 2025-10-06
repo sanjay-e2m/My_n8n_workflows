@@ -1,1 +1,235 @@
-File Created for my content
+{
+  "createdAt": "2025-10-03T12:48:45.778Z",
+  "updatedAt": "2025-10-03T12:53:49.000Z",
+  "id": "DRFIAHJekF6LsQP5",
+  "name": "Download file",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-trigger-ManualTrigger-2024-10-27",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "8f124233-a622-49c9-b4e9-b379f14b19b1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1360,
+        400
+      ],
+      "webhookId": "cb56cad5-d31a-475f-a0fa-4f45af86d566"
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "manualTriggerData",
+            "value": "Test manual trigger"
+          }
+        ],
+        "options": {}
+      },
+      "id": "set-node-id",
+      "name": "Set Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1360,
+        450
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5861c764-6ecc-47d8-8c38-3ce82c99b4bd",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -2000,
+        512
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Please extract all text from this PDF. Return the output in JSON format, not modify data, same data provide but format.\" \n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"application/pdf\",\n            \"data\": \"{{ $json.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "id": "9f2db9d5-d6df-4a81-8256-8da16f7f9519",
+      "name": "Call Gemini API with PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -656,
+        512
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "c8e63ebb-0d08-48bc-baa7-16f07ec1f7ec",
+      "name": "Transform to base64 (pdf)",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -896,
+        512
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1N7bxQ6CQ1aivCWawZdhJhmJRMBtgjC6C",
+          "mode": "list",
+          "cachedResultName": "June25 average cost of cross country movers.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1N7bxQ6CQ1aivCWawZdhJhmJRMBtgjC6C/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1152,
+        512
+      ],
+      "id": "e5a6e2e5-9b68-48ff-b984-5a7287a34c9c",
+      "name": "Download file"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to base64 (pdf)": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini API with PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Transform to base64 (pdf)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Test Data": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "142db3d2-0844-4819-aa05-4cc132db20b4",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-03T12:48:45.781Z",
+      "updatedAt": "2025-10-03T12:48:45.781Z",
+      "role": "workflow:owner",
+      "workflowId": "DRFIAHJekF6LsQP5",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
