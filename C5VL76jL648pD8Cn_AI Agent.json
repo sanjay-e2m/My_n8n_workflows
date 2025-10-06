@@ -1,1 +1,318 @@
-File Created for my content
+{
+  "createdAt": "2025-10-01T12:31:07.518Z",
+  "updatedAt": "2025-10-01T13:08:35.000Z",
+  "id": "C5VL76jL648pD8Cn",
+  "name": "AI Agent",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-ChatTrigger-2024-11-04-170251",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "3e90b539-4a2a-4585-bb03-002856022673",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -624,
+        -16
+      ],
+      "webhookId": "e4c3d45c-d86f-444a-b30c-c68e7b520e52"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40e865a6-715c-4c39-8466-56d4931a2b67",
+              "name": "chatInput",
+              "value": "Hello, I need to generate test cases for an n8n workflow JSON.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e03e5860-2447-4521-82c6-a551f446d6d5",
+      "name": "Set Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Workflow JSON to Analyze:\n\n{{ $json.chatInput }}\n\n---\n\n**Instructions:** Analyze the above n8n workflow JSON and generate test cases following the exact format specified in your system prompt. Output ONLY the JSON object, nothing else.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert n8n Automation Test Case Generator. You analyze n8n workflow JSON and generate comprehensive test data.\n\n## Analysis Steps:\n1. Identify the trigger node (Webhook, Chat Trigger, Manual Trigger, etc.)\n2. Find the first action node that receives external input\n3. Extract all input fields from the payload structure\n4. Determine the workflow purpose (image generation, data processing, notification, etc.)\n5. Infer data types for each field based on field names and usage\n\n## Output Requirements:\nYou MUST output ONLY a valid JSON object. NO markdown, NO explanations, NO additional text.\n\n### Exact JSON Structure:\n```json\n{\n  \"automationType\": \"<workflow_type>\",\n  \"requiredFields\": {\n    \"field1\": \"dataType\",\n    \"field2\": \"dataType\"\n  },\n  \"cases\": {\n    \"case_1\": {\n      \"description\": \"Valid request with realistic data\",\n      \"data\": {\n        \"field1\": \"valid_value\",\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_2\": {\n      \"description\": \"Missing required field (empty string)\",\n      \"data\": {\n        \"field1\": \"\",\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_3\": {\n      \"description\": \"Invalid data type for field\",\n      \"data\": {\n        \"field1\": 12345,\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_4\": {\n      \"description\": \"Edge case with special characters, long input, or boundary values\",\n      \"data\": {\n        \"field1\": \"edge_case_value\",\n        \"field2\": \"edge_case_value\"\n      }\n    }\n  }\n}\n```\n\n### Test Case Guidelines:\n\n**case_1 (Valid):**\n- Use realistic, production-like data\n- For image generation: descriptive, detailed prompts\n- For emails: valid email format\n- For names: realistic full names\n- For numbers: reasonable values within expected range\n\n**case_2 (Missing Required Field):**\n- Set ONE required field to empty string \"\"\n- Keep other fields valid\n- This tests error handling for missing data\n\n**case_3 (Invalid Data Type):**\n- Provide wrong data type for at least one field\n- If expecting string, provide number (e.g., 12345)\n- If expecting number, provide string (e.g., \"not_a_number\")\n- If expecting email, provide invalid format (e.g., \"invalid-email\")\n- If expecting boolean, provide string (e.g., \"true\" instead of true)\n\n**case_4 (Edge Case):**\n- For text/prompts: Very long input (200+ chars) with special characters, emojis, unicode\n- For numbers: Boundary values (0, negative, very large, decimal)\n- For emails: Edge valid formats (plus addressing, subdomains)\n- For dates: Future dates, past dates, edge of valid range\n\n### Workflow Type Detection:\n- If workflow has image-related keywords → \"Image Generation Workflow\"\n- If workflow has email nodes → \"Email Automation Workflow\"\n- If workflow has database/CRUD operations → \"Data Processing Workflow\"\n- If workflow has notification nodes → \"Notification Workflow\"\n- Default: \"Generic Automation Workflow\"\n\n### Data Type Inference:\n- Fields named \"email\", \"mail\" → \"email\"\n- Fields named \"name\", \"username\", \"title\" → \"text\"\n- Fields named \"age\", \"count\", \"amount\", \"price\" → \"number\"\n- Fields named \"description\", \"prompt\", \"message\", \"input\" → \"text\"\n- Fields named \"date\", \"timestamp\" → \"date\"\n- Fields named \"active\", \"enabled\", \"status\" → \"boolean\"\n- Default → \"text\"\n\n### Critical Rules:\n1. Output ONLY the JSON object\n2. NO markdown code blocks (no ```json or ```)\n3. NO explanatory text before or after JSON\n4. Ensure all JSON is properly formatted and valid\n5. All string values must use double quotes\n6. No trailing commas\n7. Escape special characters in strings properly\n\nStart your response with { and end with }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "4f45aeae-964b-4db9-a507-ca54af849739",
+      "name": "AI Agent",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        224
+      ],
+      "id": "fff60c8f-3779-454b-8be4-523e75f57d22",
+      "name": "Google Gemini Chat Model",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced JSON Parser with Better Error Handling\nlet input = $input.first().json.output;\n\nfunction cleanAndParseJSON(rawInput) {\n    try {\n        // Step 1: Remove markdown code blocks\n        let cleaned = rawInput.replace(/```json\\s*/g, \"\").replace(/```\\s*/g, \"\");\n        \n        // Step 2: Remove any leading/trailing text before first { and after last }\n        let firstBrace = cleaned.indexOf(\"{\");\n        let lastBrace = cleaned.lastIndexOf(\"}\");\n        \n        if (firstBrace === -1 || lastBrace === -1) {\n            throw new Error(\"No JSON object found in response\");\n        }\n        \n        cleaned = cleaned.substring(firstBrace, lastBrace + 1);\n        \n        // Step 3: Unescape common escape sequences\n        cleaned = cleaned.replace(/\\\\n/g, \" \")\n                       .replace(/\\\\r/g, \" \")\n                       .replace(/\\\\t/g, \" \")\n                       .replace(/\\\\\"/g, '\"');\n        \n        // Step 4: Fix common AI mistakes\n        // Fix unquoted property names\n        cleaned = cleaned.replace(/([{,]\\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*:/g, '$1\"$2\":');\n        \n        // Remove trailing commas\n        cleaned = cleaned.replace(/,\\s*([}\\]])/g, '$1');\n        \n        // Fix single quotes to double quotes (carefully)\n        cleaned = cleaned.replace(/:\\s*'([^']*)'/g, ': \"$1\"');\n        \n        // Step 5: Balance braces if truncated\n        let openBraces = (cleaned.match(/{/g) || []).length;\n        let closeBraces = (cleaned.match(/}/g) || []).length;\n        if (closeBraces < openBraces) {\n            cleaned += \"}\".repeat(openBraces - closeBraces);\n        }\n        \n        let openBrackets = (cleaned.match(/\\[/g) || []).length;\n        let closeBrackets = (cleaned.match(/\\]/g) || []).length;\n        if (closeBrackets < openBrackets) {\n            cleaned += \"]\".repeat(openBrackets - closeBrackets);\n        }\n        \n        // Step 6: Attempt to parse\n        return JSON.parse(cleaned);\n        \n    } catch (error) {\n        throw new Error(`JSON parsing failed: ${error.message}`);\n    }\n}\n\nfunction validateTestCaseStructure(parsed) {\n    // Validate required top-level fields\n    if (!parsed.automationType) {\n        throw new Error(\"Missing 'automationType' field\");\n    }\n    \n    if (!parsed.requiredFields || typeof parsed.requiredFields !== 'object') {\n        throw new Error(\"Missing or invalid 'requiredFields' object\");\n    }\n    \n    if (!parsed.cases || typeof parsed.cases !== 'object') {\n        throw new Error(\"Missing or invalid 'cases' object\");\n    }\n    \n    // Validate all 4 cases exist\n    const requiredCases = ['case_1', 'case_2', 'case_3', 'case_4'];\n    for (const caseName of requiredCases) {\n        if (!parsed.cases[caseName]) {\n            throw new Error(`Missing ${caseName}`);\n        }\n        \n        const testCase = parsed.cases[caseName];\n        if (!testCase.description || !testCase.data) {\n            throw new Error(`${caseName} missing 'description' or 'data'`);\n        }\n    }\n    \n    return true;\n}\n\ntry {\n    // Parse the JSON\n    const parsedJSON = cleanAndParseJSON(input);\n    \n    // Validate structure\n    validateTestCaseStructure(parsedJSON);\n    \n    // Return successfully parsed and validated JSON\n    return [{\n        json: {\n            success: true,\n            testCases: parsedJSON,\n            metadata: {\n                automationType: parsedJSON.automationType,\n                fieldCount: Object.keys(parsedJSON.requiredFields).length,\n                caseCount: Object.keys(parsedJSON.cases).length,\n                timestamp: new Date().toISOString()\n            }\n        }\n    }];\n    \n} catch (error) {\n    // Return detailed error information\n    return [{\n        json: {\n            success: false,\n            error: error.message,\n            rawOutput: input.substring(0, 500),\n            suggestion: \"The AI response was not in the expected format. Try re-running the workflow or check the system prompt.\"\n        }\n    }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "2852a1c3-4a5d-4466-9d3b-6dbde5421e90",
+      "name": "Parse and Validate JSON",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "270fc2e5-5962-411a-8bd0-40921b1229fe",
+      "name": "Validation Check",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/webhook-replace-when-chat-message-received",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=",
+              "value": "={{ $json.testCases }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        656,
+        -128
+      ],
+      "id": "e4374862-3685-47a5-bc5a-efafc5a55b0a",
+      "name": "Send Test Cases",
+      "disabled": true,
+      "notes": "Sends validated test cases to the next workflow step"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        656,
+        80
+      ],
+      "id": "87db87aa-9b38-45e3-b105-2a096b65982b",
+      "name": "Error Response",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse and Validate JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Test Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Validate JSON": {
+      "main": [
+        [
+          {
+            "node": "Validation Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Check": {
+      "main": [
+        [
+          {
+            "node": "Send Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "errorWorkflow": "VzqKEW0ShTXA5vPj",
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "lastId": 1
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "9ab50ac3-d9ec-4e9c-86e7-cb7e77db3f77",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-01T12:31:07.522Z",
+      "updatedAt": "2025-10-01T12:31:07.522Z",
+      "role": "workflow:owner",
+      "workflowId": "C5VL76jL648pD8Cn",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
