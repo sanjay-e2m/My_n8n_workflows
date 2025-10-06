@@ -1,1 +1,312 @@
-File Created for my content
+{
+  "createdAt": "2025-10-04T09:56:14.043Z",
+  "updatedAt": "2025-10-04T09:56:36.000Z",
+  "id": "Icc9AOQQiPYHFnib",
+  "name": "Download file1",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-trigger-ManualTrigger-2024-10-27",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4789-9012-34567890abcd",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        300
+      ],
+      "webhookId": "cb56cad5-d31a-475f-a0fa-4f45af86d566"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "manualTriggerData",
+              "value": "Test manual trigger"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bcde5678-f901-4abc-b234-567890abcdef",
+      "name": "Set Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.left }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        464,
+        448
+      ],
+      "id": "187d3fb1-4df2-491b-afdf-c8cee52e404b",
+      "name": "Download file1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        432
+      ],
+      "id": "42ea3bfa-971c-487b-a84f-48edf73d116c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        640,
+        448
+      ],
+      "id": "b5b09512-48c5-4302-a1f0-d590c9df97e5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: Static array of file pairs\n// Output: One item per pair for n8n loop\n\nreturn [\n  {\n    json: {\n      left: \"1OJinXo0vS-tU4MCNoB4c05lsBgZS-_oF\"\n    }\n  },\n  {\n    json: {\n      left:\"1pq8RpYNbywLmF1zGDgbbm0EWM_K5Ul1yR0AwHzakwpg\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        432
+      ],
+      "id": "3fba9a40-ac26-4fc1-885d-0e49a60332c6",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.draftable.com/v1/comparisons",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "identifier"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "left.file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "left.display_name",
+              "value": "old"
+            },
+            {
+              "name": "left.file_type",
+              "value": "doc"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "right.file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "right.display_name",
+              "value": "new"
+            },
+            {
+              "name": "right.file_type",
+              "value": "doc"
+            },
+            {
+              "name": "public",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        240
+      ],
+      "id": "bf67c023-ae39-4c32-ae11-5bf931260d0d",
+      "name": "HTTP Request1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file1": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Test Data": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "676c5056-afa4-450b-89aa-bc3115ed3850",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-04T09:56:14.049Z",
+      "updatedAt": "2025-10-04T09:56:14.049Z",
+      "role": "workflow:owner",
+      "workflowId": "Icc9AOQQiPYHFnib",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
