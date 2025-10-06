@@ -1,1 +1,1415 @@
-File Created for my content
+{
+  "createdAt": "2025-10-04T08:47:33.768Z",
+  "updatedAt": "2025-10-04T09:49:03.000Z",
+  "id": "LjCMohd3BL2PWUNK",
+  "name": "AI Workflow Generator - Optimized",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Workflow JSON to Analyze:\n\n{{ $json.chatInput }}\n\n---\n\n**Instructions:** Analyze the above n8n workflow JSON and generate test cases following the exact format specified in your system prompt. Output ONLY the JSON object, nothing else.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert n8n Automation Test Case Generator. You analyze n8n workflow JSON and generate comprehensive test data.\n\n## Analysis Steps:\n1. Identify the trigger node (Webhook, Chat Trigger, Manual Trigger, etc.)\n2. Find the first action node that receives external input\n3. Extract all input fields from the payload structure\n4. Determine the workflow purpose (image generation, data processing, notification, etc.)\n5. Infer data types for each field based on field names and usage\n\n## Output Requirements:\nYou MUST output ONLY a valid JSON object. NO markdown, NO explanations, NO additional text.\n\n### Exact JSON Structure:\n```json\n{\n  \"automationType\": \"<workflow_type>\",\n  \"requiredFields\": {\n    \"field1\": \"dataType\",\n    \"field2\": \"dataType\"\n  },\n  \"cases\": {\n    \"case_1\": {\n      \"description\": \"Valid request with realistic data\",\n      \"data\": {\n        \"field1\": \"valid_value\",\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_2\": {\n      \"description\": \"Missing required field (empty string)\",\n      \"data\": {\n        \"field1\": \"\",\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_3\": {\n      \"description\": \"Invalid data type for field\",\n      \"data\": {\n        \"field1\": 12345,\n        \"field2\": \"valid_value\"\n      }\n    },\n    \"case_4\": {\n      \"description\": \"Edge case with special characters, long input, or boundary values\",\n      \"data\": {\n        \"field1\": \"edge_case_value\",\n        \"field2\": \"edge_case_value\"\n      }\n    }\n  }\n}\n```\n\n### Test Case Guidelines:\n\n**case_1 (Valid):**\n- Use realistic, production-like data\n- For image generation: descriptive, detailed prompts\n- For emails: valid email format\n- For names: realistic full names\n- For numbers: reasonable values within expected range\n\n**case_2 (Missing Required Field):**\n- Set ONE required field to empty string \"\"\n- Keep other fields valid\n- This tests error handling for missing data\n\n**case_3 (Invalid Data Type):**\n- Provide wrong data type for at least one field\n- If expecting string, provide number (e.g., 12345)\n- If expecting number, provide string (e.g., \"not_a_number\")\n- If expecting email, provide invalid format (e.g., \"invalid-email\")\n- If expecting boolean, provide string (e.g., \"true\" instead of true)\n\n**case_4 (Edge Case):**\n- For text/prompts: Very long input (200+ chars) with special characters, emojis, unicode\n- For numbers: Boundary values (0, negative, very large, decimal)\n- For emails: Edge valid formats (plus addressing, subdomains)\n- For dates: Future dates, past dates, edge of valid range\n\n### Workflow Type Detection:\n- If workflow has image-related keywords → \"Image Generation Workflow\"\n- If workflow has email nodes → \"Email Automation Workflow\"\n- If workflow has database/CRUD operations → \"Data Processing Workflow\"\n- If workflow has notification nodes → \"Notification Workflow\"\n- Default: \"Generic Automation Workflow\"\n\n### Data Type Inference:\n- Fields named \"email\", \"mail\" → \"email\"\n- Fields named \"name\", \"username\", \"title\" → \"text\"\n- Fields named \"age\", \"count\", \"amount\", \"price\" → \"number\"\n- Fields named \"description\", \"prompt\", \"message\", \"input\" → \"text\"\n- Fields named \"date\", \"timestamp\" → \"date\"\n- Fields named \"active\", \"enabled\", \"status\" → \"boolean\"\n- Default → \"text\"\n\n### Critical Rules:\n1. Output ONLY the JSON object\n2. NO markdown code blocks (no ```json or ```)\n3. NO explanatory text before or after JSON\n4. Ensure all JSON is properly formatted and valid\n5. All string values must use double quotes\n6. No trailing commas\n7. Escape special characters in strings properly\n\nStart your response with { and end with }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "b2d2ee9c-fbcf-4699-ad10-9b7cf34fb5f3",
+      "name": "AI Agent",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        192
+      ],
+      "id": "c86ecf5b-f648-4ed2-a865-4d3e00fc7e84",
+      "name": "Google Gemini Chat Model",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        -48
+      ],
+      "id": "f0428435-2056-4fd8-9583-a1d5f7e588f0",
+      "name": "When chat message received",
+      "webhookId": "3a962fb1-1cda-4624-9995-39fef81a49b3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced JSON Parser with Better Error Handling\nlet input = $input.first().json.output;\n\nfunction cleanAndParseJSON(rawInput) {\n    try {\n        // Step 1: Remove markdown code blocks\n        let cleaned = rawInput.replace(/```json\\s*/g, \"\").replace(/```\\s*/g, \"\");\n        \n        // Step 2: Remove any leading/trailing text before first { and after last }\n        let firstBrace = cleaned.indexOf(\"{\");\n        let lastBrace = cleaned.lastIndexOf(\"}\");\n        \n        if (firstBrace === -1 || lastBrace === -1) {\n            throw new Error(\"No JSON object found in response\");\n        }\n        \n        cleaned = cleaned.substring(firstBrace, lastBrace + 1);\n        \n        // Step 3: Unescape common escape sequences\n        cleaned = cleaned.replace(/\\\\n/g, \" \")\n                       .replace(/\\\\r/g, \" \")\n                       .replace(/\\\\t/g, \" \")\n                       .replace(/\\\\\"/g, '\"');\n        \n        // Step 4: Fix common AI mistakes\n        // Fix unquoted property names\n        cleaned = cleaned.replace(/([{,]\\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*:/g, '$1\"$2\":');\n        \n        // Remove trailing commas\n        cleaned = cleaned.replace(/,\\s*([}\\]])/g, '$1');\n        \n        // Fix single quotes to double quotes (carefully)\n        cleaned = cleaned.replace(/:\\s*'([^']*)'/g, ': \"$1\"');\n        \n        // Step 5: Balance braces if truncated\n        let openBraces = (cleaned.match(/{/g) || []).length;\n        let closeBraces = (cleaned.match(/}/g) || []).length;\n        if (closeBraces < openBraces) {\n            cleaned += \"}\".repeat(openBraces - closeBraces);\n        }\n        \n        let openBrackets = (cleaned.match(/\\[/g) || []).length;\n        let closeBrackets = (cleaned.match(/\\]/g) || []).length;\n        if (closeBrackets < openBrackets) {\n            cleaned += \"]\".repeat(openBrackets - closeBrackets);\n        }\n        \n        // Step 6: Attempt to parse\n        return JSON.parse(cleaned);\n        \n    } catch (error) {\n        throw new Error(`JSON parsing failed: ${error.message}`);\n    }\n}\n\nfunction validateTestCaseStructure(parsed) {\n    // Validate required top-level fields\n    if (!parsed.automationType) {\n        throw new Error(\"Missing 'automationType' field\");\n    }\n    \n    if (!parsed.requiredFields || typeof parsed.requiredFields !== 'object') {\n        throw new Error(\"Missing or invalid 'requiredFields' object\");\n    }\n    \n    if (!parsed.cases || typeof parsed.cases !== 'object') {\n        throw new Error(\"Missing or invalid 'cases' object\");\n    }\n    \n    // Validate all 4 cases exist\n    const requiredCases = ['case_1', 'case_2', 'case_3', 'case_4'];\n    for (const caseName of requiredCases) {\n        if (!parsed.cases[caseName]) {\n            throw new Error(`Missing ${caseName}`);\n        }\n        \n        const testCase = parsed.cases[caseName];\n        if (!testCase.description || !testCase.data) {\n            throw new Error(`${caseName} missing 'description' or 'data'`);\n        }\n    }\n    \n    return true;\n}\n\ntry {\n    // Parse the JSON\n    const parsedJSON = cleanAndParseJSON(input);\n    \n    // Validate structure\n    validateTestCaseStructure(parsedJSON);\n    \n    // Return successfully parsed and validated JSON\n    return [{\n        json: {\n            success: true,\n            testCases: parsedJSON,\n            metadata: {\n                automationType: parsedJSON.automationType,\n                fieldCount: Object.keys(parsedJSON.requiredFields).length,\n                caseCount: Object.keys(parsedJSON.cases).length,\n                timestamp: new Date().toISOString()\n            }\n        }\n    }];\n    \n} catch (error) {\n    // Return detailed error information\n    return [{\n        json: {\n            success: false,\n            error: error.message,\n            rawOutput: input.substring(0, 500),\n            suggestion: \"The AI response was not in the expected format. Try re-running the workflow or check the system prompt.\"\n        }\n    }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -48
+      ],
+      "id": "37ab2aa0-a5aa-4cfb-bd3f-115c999248ee",
+      "name": "Parse and Validate JSON",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -48
+      ],
+      "id": "834aba59-d78a-403b-a51e-61640f92845d",
+      "name": "Validation Check",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/webhook-replace-when-chat-message-received",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=",
+              "value": "={{ $json.testCases }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        -160
+      ],
+      "id": "ed7bb816-32b0-41dd-8978-1ee1dd46bb85",
+      "name": "Send Test Cases",
+      "disabled": true,
+      "notes": "Sends validated test cases to the next workflow step"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        560,
+        48
+      ],
+      "id": "e9fe5006-d66c-49dc-ace3-a00cb0ace6e3",
+      "name": "Error Response",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Test Case Genrator\n",
+        "height": 80,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -544,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "75ae1ba7-6d6c-4626-ab13-02c35434d3aa",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-nodes",
+              "leftValue": "={{ $json.nodes?.length > 0 }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        1024
+      ],
+      "id": "03d08bac-9ff2-414c-9e86-7f4db1b0e75a",
+      "name": "Has Nodes?1"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "e3a3ba1e-e4fb-4229-80db-464e29bc491d",
+      "name": "Transform to base1",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -240,
+        1152
+      ],
+      "typeVersion": 1,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [\n      {\n        \"text\": \"You are a JSON generator for n8n workflows. CRITICAL REQUIREMENTS:\\n\\n1. Return ONLY valid, parseable JSON - no markdown, no explanations\\n2. Use this EXACT structure:\\n{\\n  \\\"modified_workflow\\\": {\\n    \\\"nodes\\\": [...],\\n    \\\"connections\\\": {...}\\n  },\\n  \\\"changes_made\\\": {\\n    \\\"updated_references\\\": [{\\\"node\\\": \\\"WorkflowName\\\"}]\\n  }\\n}\\n\\n3. JSON RULES:\\n   - All strings must use double quotes\\n   - No trailing commas\\n   - All brackets must match\\n   - Escape special characters\\n   - Numbers without quotes\\n\\n4. Each node MUST have: id, name, type, position [x,y], typeVersion, parameters\\n5. Validate all connections reference existing node names\\n6. Test your JSON before responding\\n\\nGenerate updated n8n workflow from the provided data.\"\n      },\n      {\n        \"inline_data\": {\n          \"mime_type\": \"text/plain\",\n          \"data\": \"{{ $json.data }}\"\n        }\n      }\n    ]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.1,\n    \"topP\": 0.9,\n    \"topK\": 20,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "054a7770-8f5b-4404-b9d7-c825c8902b0d",
+      "name": "Call Gemini API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        80,
+        1136
+      ],
+      "typeVersion": 4.2,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ULTRA-ROBUST JSON PARSER with auto-repair\nconst input = $input.first().json;\nlet raw = input.candidates?.[0]?.content?.parts?.[0]?.text;\n\nif (!raw) {\n    throw new Error(\"❌ No response from Gemini API\");\n}\n\nconsole.log(\"📥 Raw response length:\", raw.length);\n\n// Step 1: Clean markdown and whitespace\nraw = raw\n    .replace(/```json\\s*/gi, '')\n    .replace(/```\\s*/g, '')\n    .replace(/^[^{]*/, '')  // Remove text before first {\n    .replace(/[^}]*$/, '')  // Remove text after last }\n    .trim();\n\n// Step 2: Extract JSON object\nlet jsonStart = raw.indexOf('{');\nlet jsonEnd = raw.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n    throw new Error(\"❌ No JSON object found in response\");\n}\n\nraw = raw.substring(jsonStart, jsonEnd + 1);\n\n// Step 3: Advanced JSON repair\nfunction repairJSON(str) {\n    let repaired = str;\n    \n    // Fix 1: Remove trailing commas before } or ]\n    repaired = repaired.replace(/,\\s*([\\]}])/g, '$1');\n    \n    // Fix 2: Add missing commas between array elements\n    repaired = repaired.replace(/\\}\\s*\\{/g, '},{');\n    repaired = repaired.replace(/\\]\\s*\\[/g, '],[');\n    \n    // Fix 3: Fix unescaped quotes in strings\n    repaired = repaired.replace(/\"([^\"]*?)\"([^,:{}\\[\\]]*?)\"([^\"]*?)\"/g, (match, p1, p2, p3) => {\n        if (p2 && !p2.match(/^\\s*[,:\\]}]\\s*$/)) {\n            return `\"${p1}${p2.replace(/\"/g, '\\\\\"')}${p3}\"`;\n        }\n        return match;\n    });\n    \n    // Fix 4: Remove control characters\n    repaired = repaired.replace(/[\\x00-\\x1F\\x7F]/g, '');\n    \n    // Fix 5: Fix missing quotes around property names\n    repaired = repaired.replace(/([{,]\\s*)([a-zA-Z_][a-zA-Z0-9_]*)\\s*:/g, '$1\"$2\":');\n    \n    // Fix 6: Ensure proper spacing\n    repaired = repaired.replace(/([\\[{,])\\s+/g, '$1');\n    repaired = repaired.replace(/\\s+([\\]}])/g, '$1');\n    \n    return repaired;\n}\n\n// Step 4: Try parsing with multiple strategies\nlet parsed = null;\nlet parseAttempts = [\n    () => JSON.parse(raw),\n    () => JSON.parse(repairJSON(raw)),\n    () => {\n        // Try to extract just the workflow object if it's nested\n        const workflowMatch = raw.match(/\"modified_workflow\"\\s*:\\s*\\{[\\s\\S]*?\\}\\s*,\\s*\"changes_made\"/i);\n        if (workflowMatch) {\n            const extracted = '{' + workflowMatch[0] + ':{\"updated_references\":[{\"node\":\"AutoGenerated\"}]}}';\n            return JSON.parse(repairJSON(extracted));\n        }\n        throw new Error(\"Cannot extract workflow\");\n    },\n    () => {\n        // Emergency: Try to parse just nodes array\n        const nodesMatch = raw.match(/\"nodes\"\\s*:\\s*\\[[\\s\\S]*?\\]/i);\n        const connectionsMatch = raw.match(/\"connections\"\\s*:\\s*\\{[\\s\\S]*?\\}/i);\n        if (nodesMatch && connectionsMatch) {\n            return {\n                modified_workflow: {\n                    nodes: JSON.parse('[' + nodesMatch[0].split('[')[1]),\n                    connections: JSON.parse('{' + connectionsMatch[0].split('{')[1])\n                },\n                changes_made: { updated_references: [{node: \"EmergencyParse_\" + Date.now()}] }\n            };\n        }\n        throw new Error(\"Cannot extract nodes/connections\");\n    }\n];\n\nlet lastError = null;\nfor (let i = 0; i < parseAttempts.length; i++) {\n    try {\n        console.log(`🔧 Parse attempt ${i + 1}...`);\n        parsed = parseAttempts[i]();\n        console.log(`✅ Parse successful on attempt ${i + 1}`);\n        break;\n    } catch (e) {\n        lastError = e;\n        console.log(`❌ Attempt ${i + 1} failed: ${e.message}`);\n    }\n}\n\nif (!parsed) {\n    // Save raw response for debugging\n    const errorContext = raw.substring(0, 1000);\n    throw new Error(`❌ All parse attempts failed. Last error: ${lastError.message}\\n\\nFirst 1000 chars:\\n${errorContext}`);\n}\n\n// Step 5: Validate structure\nif (!parsed.modified_workflow) {\n    throw new Error(\"❌ Missing 'modified_workflow' in parsed JSON\");\n}\n\nif (!parsed.modified_workflow.nodes || !Array.isArray(parsed.modified_workflow.nodes)) {\n    throw new Error(\"❌ Missing or invalid 'nodes' array\");\n}\n\nif (!parsed.modified_workflow.connections || typeof parsed.modified_workflow.connections !== 'object') {\n    console.log(\"⚠️ Invalid connections, using empty object\");\n    parsed.modified_workflow.connections = {};\n}\n\nif (!parsed.changes_made) {\n    console.log(\"⚠️ Missing changes_made, using default\");\n    parsed.changes_made = {\n        updated_references: [{ node: \"AI_Generated_\" + Date.now() }]\n    };\n}\n\nconst modify_nodes = parsed.modified_workflow.nodes;\nconst modify_connections = parsed.modified_workflow.connections;\nconst changes_made = parsed.changes_made;\n\nif (modify_nodes.length === 0) {\n    throw new Error(\"❌ Workflow has no nodes\");\n}\n\nconsole.log(`✅ Successfully parsed workflow with ${modify_nodes.length} nodes`);\n\nreturn [{ \n    json: { \n        modify_nodes, \n        modify_connections, \n        changes_made,\n        parse_info: {\n            original_length: input.candidates?.[0]?.content?.parts?.[0]?.text?.length || 0,\n            cleaned_length: raw.length,\n            nodes_count: modify_nodes.length\n        }\n    } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        1120
+      ],
+      "id": "f05be6be-496a-44c8-9ce0-3c643ac1b096",
+      "name": "Parse & Validate Response",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Advanced workflow validation with auto-fix\nconst nodes = $input.first().json.modify_nodes;\nconst connections = $input.first().json.modify_connections;\nconst changes_made = $input.first().json.changes_made;\n\nconsole.log(`🔍 Validating ${nodes.length} nodes...`);\n\n// 1. Validate and fix all nodes\nconst validatedNodes = [];\nconst nodeIds = new Set();\nconst nodeNames = new Set();\nlet fixedCount = 0;\n\nfor (let i = 0; i < nodes.length; i++) {\n    const node = nodes[i];\n    let fixed = false;\n    \n    // Fix missing ID\n    if (!node.id) {\n        node.id = `node-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`;\n        fixed = true;\n    }\n    \n    // Fix missing name\n    if (!node.name) {\n        node.name = `Node_${i + 1}_${node.type?.split('.').pop() || 'Unknown'}`;\n        fixed = true;\n    }\n    \n    // Check for duplicate names\n    if (nodeNames.has(node.name)) {\n        node.name = `${node.name}_${Date.now()}_${i}`;\n        fixed = true;\n    }\n    \n    // Fix missing type\n    if (!node.type) {\n        console.log(`❌ Node ${node.name} has no type - skipping`);\n        continue;\n    }\n    \n    // Fix missing position\n    if (!node.position || !Array.isArray(node.position) || node.position.length !== 2) {\n        node.position = [i * 240, 1824];\n        fixed = true;\n    }\n    \n    // Fix invalid position values\n    if (typeof node.position[0] !== 'number' || typeof node.position[1] !== 'number') {\n        node.position = [i * 240, 1824];\n        fixed = true;\n    }\n    \n    // Fix missing typeVersion\n    if (!node.typeVersion) {\n        node.typeVersion = 1;\n        fixed = true;\n    }\n    \n    // Ensure parameters exist\n    if (!node.parameters) {\n        node.parameters = {};\n        fixed = true;\n    }\n    \n    if (fixed) {\n        fixedCount++;\n        console.log(`🔧 Fixed node: ${node.name}`);\n    }\n    \n    nodeIds.add(node.id);\n    nodeNames.add(node.name);\n    validatedNodes.push(node);\n}\n\nconsole.log(`✅ Validated ${validatedNodes.length} nodes (${fixedCount} fixed)`);\n\nif (validatedNodes.length === 0) {\n    throw new Error(\"❌ No valid nodes after validation\");\n}\n\n// 2. Clean and validate connections\nconst cleanedConnections = {};\nlet removedConnections = 0;\nlet fixedConnections = 0;\n\nfor (const [sourceNodeName, connectionTypes] of Object.entries(connections)) {\n    const sourceNode = validatedNodes.find(n => n.name === sourceNodeName);\n    \n    if (!sourceNode) {\n        console.log(`⚠️ Removing connections from non-existent source: ${sourceNodeName}`);\n        removedConnections++;\n        continue;\n    }\n    \n    cleanedConnections[sourceNodeName] = {};\n    \n    for (const [connType, connArray] of Object.entries(connectionTypes)) {\n        if (!Array.isArray(connArray)) {\n            console.log(`⚠️ Invalid connection type format for ${sourceNodeName}.${connType}`);\n            continue;\n        }\n        \n        cleanedConnections[sourceNodeName][connType] = [];\n        \n        for (const connGroup of connArray) {\n            if (!Array.isArray(connGroup)) {\n                console.log(`⚠️ Invalid connection group in ${sourceNodeName}`);\n                continue;\n            }\n            \n            const validConnections = [];\n            \n            for (const conn of connGroup) {\n                // Validate connection structure\n                if (!conn || typeof conn !== 'object') {\n                    removedConnections++;\n                    continue;\n                }\n                \n                // Fix missing fields\n                if (!conn.node) {\n                    console.log(`⚠️ Connection missing target node name`);\n                    removedConnections++;\n                    continue;\n                }\n                \n                if (conn.type === undefined) {\n                    conn.type = 'main';\n                    fixedConnections++;\n                }\n                \n                if (conn.index === undefined) {\n                    conn.index = 0;\n                    fixedConnections++;\n                }\n                \n                // Check if target node exists\n                const targetNode = validatedNodes.find(n => n.name === conn.node);\n                if (!targetNode) {\n                    console.log(`⚠️ Removing connection to non-existent target: ${conn.node}`);\n                    removedConnections++;\n                    continue;\n                }\n                \n                validConnections.push(conn);\n            }\n            \n            if (validConnections.length > 0) {\n                cleanedConnections[sourceNodeName][connType].push(validConnections);\n            }\n        }\n        \n        // Remove empty connection types\n        if (cleanedConnections[sourceNodeName][connType].length === 0) {\n            delete cleanedConnections[sourceNodeName][connType];\n        }\n    }\n    \n    // Remove empty connection objects\n    if (Object.keys(cleanedConnections[sourceNodeName]).length === 0) {\n        delete cleanedConnections[sourceNodeName];\n    }\n}\n\nconsole.log(`🔗 Connections: ${removedConnections} removed, ${fixedConnections} fixed`);\n\n// 3. Detect orphaned nodes\nconst connectedNodeNames = new Set();\nfor (const [source, types] of Object.entries(cleanedConnections)) {\n    connectedNodeNames.add(source);\n    for (const connArray of Object.values(types)) {\n        for (const group of connArray) {\n            for (const conn of group) {\n                connectedNodeNames.add(conn.node);\n            }\n        }\n    }\n}\n\nconst orphanedNodes = validatedNodes.filter(node => \n    !connectedNodeNames.has(node.name) && \n    !node.type.toLowerCase().includes('trigger') &&\n    !node.type.toLowerCase().includes('webhook')\n);\n\nif (orphanedNodes.length > 0) {\n    console.log(`⚠️ Found ${orphanedNodes.length} orphaned nodes: ${orphanedNodes.map(n => n.name).join(', ')}`);\n}\n\n// 4. Validate specific node types\nconst webhookNodes = validatedNodes.filter(n => \n    n.type === 'n8n-nodes-base.webhook' ||\n    n.type.toLowerCase().includes('webhook')\n);\n\nfor (const webhook of webhookNodes) {\n    if (!webhook.parameters?.path) {\n        console.log(`⚠️ Webhook ${webhook.name} missing path, adding default`);\n        if (!webhook.parameters) webhook.parameters = {};\n        webhook.parameters.path = `/webhook-${Date.now()}`;\n    }\n}\n\n// 5. Ensure workflow has a trigger\nconst hasTrigger = validatedNodes.some(n => \n    n.type.toLowerCase().includes('trigger') ||\n    n.type.toLowerCase().includes('webhook')\n);\n\nif (!hasTrigger) {\n    console.log(\"⚠️ WARNING: Workflow has no trigger node!\");\n}\n\n// 6. Final report\nconst validationReport = {\n    total_nodes: validatedNodes.length,\n    nodes_fixed: fixedCount,\n    connections_removed: removedConnections,\n    connections_fixed: fixedConnections,\n    orphaned_nodes: orphanedNodes.map(n => n.name),\n    webhook_nodes: webhookNodes.map(n => ({ name: n.name, path: n.parameters?.path })),\n    has_trigger: hasTrigger,\n    validation_passed: validatedNodes.length > 0 && hasTrigger\n};\n\nconsole.log(\"📊 Validation Report:\", JSON.stringify(validationReport, null, 2));\n\nreturn [{ \n    json: { \n        modify_nodes: validatedNodes,\n        modify_connections: cleanedConnections,\n        changes_made: changes_made,\n        validation_report: validationReport\n    } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        1104
+      ],
+      "id": "99a372ad-a6c2-4e7a-823a-2d710ac86226",
+      "name": "Validate & Clean Workflow",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow-payload",
+              "name": "workflowPayload",
+              "value": "={{ \n  JSON.stringify({\n    \"name\": ($json.changes_made?.updated_references?.[0]?.node || \"AI_Generated_\" + Date.now()),\n    \"nodes\": $json.modify_nodes,\n    \"connections\": $json.modify_connections,\n    \"settings\": {\n      \"saveExecutionProgress\": true,\n      \"saveManualExecutions\": true,\n      \"saveDataErrorExecution\": \"all\",\n      \"saveDataSuccessExecution\": \"all\",\n      \"executionTimeout\": 3600,\n      \"timezone\": \"America/New_York\",\n      \"executionOrder\": \"v1\"\n    },\n    \"staticData\": {}\n  })\n}}",
+              "type": "string"
+            },
+            {
+              "id": "validation-report",
+              "name": "validation_report",
+              "value": "={{ $json.validation_report }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        1088
+      ],
+      "id": "ff6ad554-96d9-483a-87aa-2aa5599eaf50",
+      "name": "Prepare Workflow Payload",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/api/v1/workflows",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.workflowPayload }}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        1072
+      ],
+      "id": "c788475a-169f-4d47-812d-ddad5d7dda32",
+      "name": "Create Workflow",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nif (!response.id) {\n    throw new Error(\"❌ Workflow creation failed - no ID returned\");\n}\n\nconsole.log(`✅ Workflow created:`);\nconsole.log(`   ID: ${response.id}`);\nconsole.log(`   Name: ${response.name || 'N/A'}`);\nconsole.log(`   Nodes: ${response.nodes?.length || 0}`);\n\nreturn [{ \n    json: { \n        id: response.id,\n        name: response.name || 'Unnamed',\n        active: response.active || false,\n        nodes: response.nodes || [],\n        created: true\n    } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        1056
+      ],
+      "id": "3b7b7b1b-4391-4ff9-b400-af70294b355f",
+      "name": "Verify Creation",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/api/v1/workflows/{{ $json.id }}/activate",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        1040
+      ],
+      "id": "0d0d3ac1-b54b-49ae-a209-ed0361f8baed",
+      "name": "Activate Workflow",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nodes = $input.first().json.nodes;\n\nif (!nodes || nodes.length === 0) {\n    return [{ json: { has_webhook: false, skip_test: true, message: \"No nodes in workflow\" } }];\n}\n\nconst webhookNode = nodes.find(n => \n    n.type === 'n8n-nodes-base.webhook' || \n    n.type?.toLowerCase().includes('webhook') ||\n    n.parameters?.path\n);\n\nif (!webhookNode) {\n    console.log(\"ℹ️ No webhook found\");\n    return [{ json: { has_webhook: false, skip_test: true, message: \"No webhook node\" } }];\n}\n\nconst webhookPath = $input.first().json.nodes[9].parameters.path;\n\nif (!webhookPath) {\n    console.log(\"⚠️ Webhook has no path\");\n    return [{ json: { has_webhook: false, skip_test: true, message: \"Webhook missing path\" } }];\n}\n\nconsole.log(`✅ Webhook found: ${webhookPath}`);\n\nreturn [{ \n    json: { \n        has_webhook: true,\n        webhook_path: webhookPath,\n        webhook_node_name: webhookNode.name,\n        skip_test: false\n    } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2976,
+        1008
+      ],
+      "id": "865ef5f2-64c2-4369-b1cc-16d434d91b73",
+      "name": "Extract Webhook Path",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/webhook{{ $json.webhook_path }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "Test from automation"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3408,
+        992
+      ],
+      "id": "b27ebbc6-0d8f-48eb-900a-bb5ce4ed14da",
+      "name": "Test Webhook",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "body",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        1168
+      ],
+      "id": "099a185d-5b42-420f-b566-cf3b59d8152c",
+      "name": "Convert to File1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Update Workflow\n## 2. Activate the Workflow\n## 3. Run Workflow\n",
+        "height": 128,
+        "width": 320,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -576,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "524e6962-a5e2-4ba2-9728-6d585b15ecad",
+      "name": "Sticky Note3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "n8n-testing",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        1168
+      ],
+      "id": "82645d38-ef7a-4c34-a008-ec70a0ff75e3",
+      "name": "Webhook1",
+      "webhookId": "f6ea9d05-bd9f-445b-97aa-bd089e99b132"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Conversation Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        1472
+      ],
+      "id": "80435534-f007-4098-81a0-f47b71249e0b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Gemini Model Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        1440
+      ],
+      "id": "341153e1-e907-4eed-a051-2ce1fe9965b1",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Parse Validations Failed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        736,
+        1440
+      ],
+      "id": "9c256001-e001-4bb5-9ab0-a9e96b344f6a",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Workflow Clean Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        1424
+      ],
+      "id": "7a6f194d-e7c7-4c11-9e0b-37b573d481c7",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Workflow Creation Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        1424
+      ],
+      "id": "d4a1a886-3428-4c39-ab27-0e4f4f51c057",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Verification of Create Workflow Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        1424
+      ],
+      "id": "5fb2d8e7-bb67-485d-974a-251a79e0f93c",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Payload Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        1424
+      ],
+      "id": "8b2ec49b-2927-4745-9993-b64da75fe555",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Workflow Activation Process Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2560,
+        1424
+      ],
+      "id": "ab32bedd-eef8-4662-b34d-a098f486e30b",
+      "name": "HTTP Request8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Data is Not Coming from past Node"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2992,
+        1424
+      ],
+      "id": "ac2dd4d6-45eb-48af-88bb-b7b4aefd0357",
+      "name": "HTTP Request9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Conversation Failed!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3408,
+        1424
+      ],
+      "id": "84c6ed38-917c-41e9-8003-40a4c7b2a2f3",
+      "name": "HTTP Request10"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/errors",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Error",
+              "value": "Workflow Running Issue."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3968,
+        1392
+      ],
+      "id": "c3f5d1e1-6275-4ee4-a58d-236fce4cb121",
+      "name": "HTTP Request11"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "File Created Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -256,
+        736
+      ],
+      "id": "c8043c6b-056b-431d-8cd5-6be06886b639",
+      "name": "HTTP Request12"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Base64 Conversation Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        736
+      ],
+      "id": "352926ea-765f-4921-9c33-d2d2fadcb3e5",
+      "name": "HTTP Request13"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Model Response generated successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        736
+      ],
+      "id": "3d976048-5f3e-49eb-bd36-551cfc9530d2",
+      "name": "HTTP Request14"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Parse Validations Failed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        736,
+        736
+      ],
+      "id": "cf1f1693-37e1-4b9d-8ecb-b08aebb4d6c4",
+      "name": "HTTP Request15"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Clean Sucessfully!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1088,
+        736
+      ],
+      "id": "bcbbc7e6-c1cc-42c3-b483-09b9b8013efb",
+      "name": "HTTP Request16"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Payload Created Successfully!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        736
+      ],
+      "id": "0f1b0cd7-3bce-4669-ad3e-28cabf694fe4",
+      "name": "HTTP Request17"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Created Successfully!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        720
+      ],
+      "id": "88c8d6dd-29f3-4092-bd31-622a4526c955",
+      "name": "HTTP Request18"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Created Verification Done."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        720
+      ],
+      "id": "ae9576d2-e2c0-49ec-807f-f59a453fb741",
+      "name": "HTTP Request19"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Activated Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2560,
+        704
+      ],
+      "id": "0c54785e-acea-4ed1-a1b4-2bafe2144ace",
+      "name": "HTTP Request20"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow parse Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2976,
+        720
+      ],
+      "id": "28db82fb-9b20-4184-ba9d-bfade3887f81",
+      "name": "HTTP Request21"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Running Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3936,
+        976
+      ],
+      "id": "441add38-f6c4-49f8-a6e3-32203b7065ab",
+      "name": "HTTP Request22"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/success",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Message",
+              "value": "Workflow Webhook Path Get Successfully."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3392,
+        720
+      ],
+      "id": "84687e95-7717-490c-9c8e-eb45b8603420",
+      "name": "HTTP Request23"
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse and Validate JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Validate JSON": {
+      "main": [
+        [
+          {
+            "node": "Validation Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Check": {
+      "main": [
+        [
+          {
+            "node": "Send Test Cases",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Nodes?1": {
+      "main": [
+        [
+          {
+            "node": "Extract Webhook Path",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request21",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to base1": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini API": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request14",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate Response": {
+      "main": [
+        [
+          {
+            "node": "Validate & Clean Workflow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request15",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Clean Workflow": {
+      "main": [
+        [
+          {
+            "node": "Prepare Workflow Payload",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request16",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Workflow Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Workflow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request17",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Workflow": {
+      "main": [
+        [
+          {
+            "node": "Verify Creation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request18",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Creation": {
+      "main": [
+        [
+          {
+            "node": "Activate Workflow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request19",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activate Workflow": {
+      "main": [
+        [
+          {
+            "node": "Has Nodes?1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request20",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Webhook Path": {
+      "main": [
+        [
+          {
+            "node": "Test Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request23",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Transform to base1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "232bd21d-756e-4e26-b115-41967e10001e",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-04T08:47:33.771Z",
+      "updatedAt": "2025-10-04T08:47:33.771Z",
+      "role": "workflow:owner",
+      "workflowId": "LjCMohd3BL2PWUNK",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-06T04:08:20.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-06",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
