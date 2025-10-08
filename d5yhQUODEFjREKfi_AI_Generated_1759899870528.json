@@ -1,10 +1,10 @@
 {
   "createdAt": "2025-10-08T05:04:30.566Z",
-  "updatedAt": "2025-10-08T05:05:58.000Z",
+  "updatedAt": "2025-10-08T05:11:05.000Z",
   "id": "d5yhQUODEFjREKfi",
   "name": "AI_Generated_1759899870528",
-  "active": true,
-  "isArchived": false,
+  "active": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
@@ -606,7 +606,7 @@
   "staticData": {},
   "meta": null,
   "pinData": {},
-  "versionId": "c470dc87-c006-41a8-87c1-1bbebb5f7137",
+  "versionId": "a2517919-3bae-4a29-b435-6672bdd66e31",
   "triggerCount": 1,
   "shared": [
     {
