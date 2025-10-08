@@ -1,1 +1,667 @@
-File Created for my content
+{
+  "createdAt": "2025-09-19T06:53:26.208Z",
+  "updatedAt": "2025-09-25T10:13:30.000Z",
+  "id": "Wu75b8Ny5xYCkjRc",
+  "name": "AI Premium Proposal Generator with OpenAI, Google Slides & PandaDoc",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🚀 STEP 1: Sales Call Form\n\nCaptures essential deal information in under 30 seconds:\n\n**Form Fields:** Company details, problem description, proposed solution, project scope, timeline, and budget\n\n**Use Case:** Fill out during live sales calls for instant proposal generation\n\n**Result:** Structured data ready for AI processing",
+        "height": 416,
+        "width": 366
+      },
+      "id": "e6e94205-18a6-474b-a5b2-ce46cd89182a",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1328,
+        -496
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 STEP 2: AI Content Generation\n\nTransforms basic form inputs into professional proposal content:\n\n**OpenAI Processing:** Uses sophisticated GPT-4 prompting with example-based training\n**Output:** 20+ proposal sections including titles, problem analysis, solutions, scope, and timelines\n**Quality:** Professional business language with consistent tone and formatting\n\n**Key:** AI converts 30-second inputs into comprehensive proposals",
+        "height": 420,
+        "width": 380
+      },
+      "id": "2a644a6b-9598-4773-94b8-0568b2522a56",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -912,
+        -496
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 📄 STEP 3: Document Generation\n\n**Google Slides Path (Free):**\n1. **Google Drive:** Copies proposal template\n2. **Replace Text:** Populates template with AI-generated content\n3. **Gmail:** Sends proposal link via email\n\n**PandaDoc Path (Premium):**\n1. **HTTP Request:** Creates PandaDoc with payment integration\n2. **Gmail:** Sends proposal with signature + payment capabilities\n\n**Result:** Professional proposals ready for client review",
+        "height": 424,
+        "width": 400
+      },
+      "id": "1dfb5f04-e3c9-4bbe-a663-1afcba333a1a",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        -496
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## ⚡ WORKFLOW ADVANTAGES\n\n**Speed:** Generate proposals in under 30 seconds during live calls\n**Quality:** AI ensures consistent, professional presentation\n**Dual Options:** Free Google Slides or premium PandaDoc with payments\n**Revenue:** Proven $1,500-$5,000 per implementation\n\n**Business Impact:** Send proposals before competitors even schedule follow-ups",
+        "height": 416,
+        "width": 350
+      },
+      "id": "b8a7f567-bef4-47cd-ac0b-e17aad1fc172",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        -496
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "operation": "replaceText",
+        "presentationId": "={{ $json.id }}",
+        "textUi": {
+          "textValues": [
+            {
+              "text": "{{proposalTitle}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.proposalTitle }}"
+            },
+            {
+              "text": "{{descriptionName}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.descriptionName }}"
+            },
+            {
+              "text": "{{oneParagraphProblemSummary}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.oneParagraphProblemSummary }}"
+            },
+            {
+              "text": "{{solutionHeadingOne}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionHeadingOne }}"
+            },
+            {
+              "text": "{{solutionHeadingTwo}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionHeadingTwo }}"
+            },
+            {
+              "text": "{{solutionHeadingThree}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionHeadingThree }}"
+            },
+            {
+              "text": "{{solutionDescriptionOne}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionDescriptionOne }}"
+            },
+            {
+              "text": "{{solutionDescriptionTwo}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionDescriptionTwo }}"
+            },
+            {
+              "text": "{{solutionDescriptionThree}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.solutionDescriptionThree }}"
+            },
+            {
+              "text": "{{shortScopeTitleOne}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeTitleOne }}"
+            },
+            {
+              "text": "{{shortScopeTitleTwo}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeTitleTwo }}"
+            },
+            {
+              "text": "{{shortScopeTitleThree}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeTitleThree }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionOne}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeDescriptionOne }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionTwo}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeDescriptionTwo }}"
+            },
+            {
+              "text": "{{shortScopeDescriptionThree}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.shortScopeDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneOneDay}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneOneDay }}"
+            },
+            {
+              "text": "{{milestoneTwoDay}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneTwoDay }}"
+            },
+            {
+              "text": "{{milestoneThreeDay}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneThreeDay }}"
+            },
+            {
+              "text": "{{milestoneFourDay}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneFourDay }}"
+            },
+            {
+              "text": "{{milestoneDescriptionOne}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneDescriptionOne }}"
+            },
+            {
+              "text": "{{milestoneDescriptionTwo}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneDescriptionTwo }}"
+            },
+            {
+              "text": "{{milestoneDescriptionThree}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneDescriptionThree }}"
+            },
+            {
+              "text": "{{milestoneDescriptionFour}}",
+              "replaceText": "={{ $('OpenAI').item.json.message.content.milestoneDescriptionFour }}"
+            },
+            {
+              "text": "{{cost}}",
+              "replaceText": "$1,850"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c25f918-4bc7-4529-8449-9b3e1db3ce07",
+      "name": "Replace Text",
+      "type": "n8n-nodes-base.googleSlides",
+      "position": [
+        -304,
+        112
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a helpful, intelligent writing assistant.",
+              "role": "system"
+            },
+            {
+              "content": "Your task is to generate a proposal using input data from a form. This proposal should be highly customized, specific, and high-quality, considering we're going to be sending it immediately after you're done.\n\nContext: we are an automation/no-code agency that develops systems revolving around growth, revenue ops, etc.\n\nThe proposal template we're using has many fields. You must return these fields in one JSON object.\n\nUse this format:\n\n{\n  \"proposalTitle\": \"\",\n  \"descriptionName\": \"\",\n  \"oneParagraphProblemSummary\": \"\",\n  \"solutionHeadingOne\": \"\",\n  \"solutionDescriptionOne\": \"\",\n  \"solutionHeadingTwo\": \"\",\n  \"solutionDescriptionTwo\": \"\",\n  \"solutionHeadingThree\": \"\",\n  \"solutionDescriptionThree\":\"\",\n  \"shortScopeTitleOne\": \"\",\n  \"shortScopeTitleTwo\": \"\",\n  \"shortScopeTitleThree\": \"\",\n  \"shortScopeDescriptionOne\": \"\",\n  \"shortScopeDescriptionTwo\": \"\",\n  \"shortScopeDescriptionThree\": \"\",\n  \"milestoneOneDay\": \"\",\n  \"milestoneTwoDay\": \"\",\n  \"milestoneThreeDay\": \"\",\n  \"milestoneFourDay\": \"\",\n  \"milestoneDescriptionOne\": \"\",\n  \"milestoneDescriptionTwo\": \"\",\n  \"milestoneDescriptionThree\": \"\",\n  \"milestoneDescriptionFour\": \"\"\n}\n\nRules:\n1. Use a spartan, casual tone of voice.\n2. Be to-the-point but professional—assume you're writing to a sophisticated audience.\n3. Ensure that all fields are filled out. Do not miss a field or leave any variables empty.\n4. Keep things short. If a field contains the term \"Description\" it should be no more than fourteen words. For \"descriptionName\" do not use title case."
+            },
+            {
+              "content": "{\n  \"companyName\":\"1SecondCopy\",\n  \"problem\": \"they can't generate leads. everything is referral based rn.\",\n  \"solution\": \"cold email lead gen system, client reactivation system, and best in class sales training for closing\",\n  \"scope\": \"1k/day cold email infra, 30k email leads, 4 weekly zoom sessions for sales training\",\n  \"currentDate\":\"Feb 4 2025\",\n  \"howSoon\": \"two months\",\n  \"depositCost\": \"$1,845\",\n}"
+            },
+            {
+              "content": "{\n  \"proposalTitle\": \"Lead Gen System for 1SecondCopy\n\",\n  \"descriptionName\": \"A simple, scalable lead generation system built to help grow your content efforts & connect you with the right people.\n\",\n  \"oneParagraphProblemSummary\": \"Right now, 1SecondCopy is struggling with an inability to generate qualified leads. The majority of your new clients are referral-based, which, while always nice to have, is not scalable nor is it reliable. Building an alternative strategy—one that allows you to take leads from cold -> close—is vital to the health and longevity of the company, and it’s what we’re going to help you with.\n\",\n  \"solutionHeadingOne\": \"Cold Outbound Lead Gen\",\n  \"solutionDescriptionOne\": \"We’ll put in place a robust cold-email-based system for you using best practices.\",\n  \"solutionHeadingTwo\": \"Client Reactivation System\",\n  \"solutionDescriptionTwo\": \"We’ll build a simple, but high-ROI reactivation system to let you extract value from pre-existing clients.\",\n  \"solutionHeadingThree\": \"Best-In-Class Sales Training\",\n  \"solutionDescriptionThree\": \"We’ll train your team with world-class setting & closing mechanisms.\",\n  \"shortScopeTitleOne\": Cold email infrastructure that sends ~1K emails/day\",\n  \"shortScopeTitleTwo\": \"30K high-quality scraped email leads (included)\",\n  \"shortScopeTitleThree\": \"Four weekly one-hour sales training sessions over Zoom\",\n  \"shortScopeDescriptionOne\": \"12 domains, 36 mailboxes, DNS optimization, and warmups included.\",\n  \"shortScopeDescriptionTwo\": \"30,000 leads in your target market, delivered by CSV.\",\n  \"shortScopeDescriptionThree\": \"We’ll take your sales team from 0->1.\",\n  \"milestoneOneDay\": \"February 8th, 2025\",\n  \"milestoneTwoDay\": \"February 28th, 2025\",\n  \"milestoneThreeDay\": \"March 10th, 2025\",\n  \"milestoneFourDay\":\"March 17th-April 1st, 2025\",\n  \"milestoneDescriptionOne\": \"Cold email system done & ready for warmup.\",\n  \"milestoneDescriptionTwo\": \"Cold email system fully warmed up & operational.\",\n  \"milestoneDescriptionThree\": \"10,000 outbound emails sent; analysis & training #1.\"\n  \"milestoneDescriptionFour\":\"One sales training per week alongside iteration & handoff.\"\n}",
+              "role": "assistant"
+            },
+            {
+              "content": "={\n  \"companyName\":\"{{ $json['Company Name'] }}\",\n  \"problem\": \"{{ $json.Problem }}\",\n  \"solution\": \"{{ $json.Solution}}\",\n  \"scope\": \"{{ $json.Scope }}\",\n  \"currentDate\":\"{{ $now.toLocaleString({ dateStyle: 'medium' }) }}\",\n  \"howSoon\": \"{{ $json['How soon?'] }}\",\n  \"depositCost\": \"{{ $json.Cost }}\",\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "60ebf327-40df-4c47-b507-f3a6a38bc531",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -848,
+        112
+      ],
+      "typeVersion": 1.6
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1fHzjDQtZouAwfv4kn5uvgpTWqwhTAlPrGkdtkbYBkNE"
+        },
+        "name": "={{ $json.message.content.proposalTitle }}",
+        "options": {
+          "copyRequiresWriterPermission": false
+        }
+      },
+      "id": "cacb97ff-73c9-46d1-960b-85e38c1d6f01",
+      "name": "Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -512,
+        112
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "Re: Proposal for LeftClick",
+        "emailType": "text",
+        "message": "=Hey Nick,\n\nThanks for the great call earlier. I had a moment after our chat to put together a detailed proposal for you—please take a look at your earliest convenience and let me know your thoughts.\n\nYou'll find it here: https://docs.google.com/presentation/d/{{ $json.presentationId }}/edit\n\nIf you have any questions, just shout. I've also sent over an invoice for the project (just to keep things convenient) and can get started anytime that's sorted.\n\nThanks,\nNick",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "6a13fdac-1160-49dc-99f1-b6abcee7e5ff",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -112,
+        112
+      ],
+      "webhookId": "b989215e-e975-44a7-9dc7-fd51e7310cba",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "formTitle": "Sales Call Logging Form",
+        "formDescription": "This form logs a sales call & automatically generates a proposal.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "First Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Last Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Website",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Solution",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Scope",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Cost",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "How soon?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f18731d1-3ec4-4a7e-8a2c-b7afe3d881b2",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -1024,
+        112
+      ],
+      "webhookId": "24fd835d-9132-4faf-b715-755e75aee9be",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "## Google Slides AI Proposal Generator\n**This flow generates proposals using the free Google Slides solution**.",
+        "height": 328,
+        "width": 1652
+      },
+      "id": "30c1856c-5788-434f-8a0b-c0ad00b73502",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1328,
+        -32
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a helpful, intelligent writing assistant.",
+              "role": "system"
+            },
+            {
+              "content": "=Your task is to generate a proposal using input data from a form. This proposal should be highly customized, specific, and high-quality, considering we're going to be sending it immediately after you're done.\n\nContext: we are an automation/no-code agency that develops systems revolving around growth, revenue ops, etc.\n\nThe proposal template we're using has many fields. You must return these fields in one JSON object.\n\nUse this format:\n\n{\n  \"proposalTitle\": \"\",\n  \"descriptionName\": \"\",\n  \"problemTitle\": \"\",\n  \"oneParagraphProblemSummary\": \"\",\n  \"solutionTitle\": \"\",\n  \"solutionText\": \"\",\n  \"scopeOne\": \"\",\n  \"scopeTwo\": \"\",\n  \"scopeThree\": \"\",\n  \"scopeFour\": \"\",\n  \"scopeFive\": \"\",\n  \"timelineOne\": \"\",\n  \"timelineTwo\": \"\",\n  \"timelineThree\": \"\",\n  \"timelineFour\": \"\"\n}\n\nRules:\n1. Use a spartan, casual tone of voice.\n2. Be to-the-point but professional—assume you're writing to a sophisticated audience.\n3. Ensure that all fields are filled out. Do not miss a field or leave any variables empty.\n4. For oneParagraphProblemSummary and solutionText, make sure to number the responses (usually 3, make sure they're inside of the string)."
+            },
+            {
+              "content": "={\n  \"companyName\":\"1SecondCopy\",\n  \"problem\": \"they can't generate leads. everything is referral based rn.\",\n  \"solution\": \"cold email lead gen system, client reactivation system, and best in class sales training for closing\",\n  \"scope\": \"1k/day cold email infra, 30k email leads, 4 weekly zoom sessions for sales training\",\n  \"currentDate\":\"Feb 4 2025\",\n  \"howSoon\": \"two months\",\n  \"depositCost\": \"$1,845\",\n}"
+            },
+            {
+              "content": "={\n  \"proposalTitle\": \"Lead Gen System for 1SecondCopy\n\",\n  \"descriptionName\": \"A simple, scalable lead generation system built to help grow your content efforts & connect you with the right people.\n\",\n  \"problemTitle\":\"Inability to generate leads\"\n  \"oneParagraphProblemSummary\": \"Right now, 1SecondCopy is struggling with:\\n\\n 1. An inability to generate qualified leads.\\nThe majority of your new clients are referral-based, which, while always nice to have, is not scalable nor is it reliable. Building an alternative strategy—one that allows you to take leads from cold -> close—is vital to the health and longevity of the company, and it’s what we’re going to help you with.\\n\\n 2. No standardized followup mechanism.\\nWithout a way to follow up with leads, you're leaving the majority of the money that one of those leads could produce for you on the table.\n\",\n  \"solutionTitle\": \"Sales & Lead Generation Solutions\",\n  \"solutionText\": \"1. Cold Outbound Lead Gen\\nIn order to generate leads efficiently, we’ll put in place a robust cold-email-based system for you using best practices.\\n\\n2. Client Reactivation System\\nIn order to extract value from pre-existing clients, we’ll build a simple but high-ROI reactivation system.\\n\\n3. Best-In-Class Sales Training\\nIn order to improve conversion rates, we’ll train your team with world-class setting & closing mechanisms.\"\n  \"scopeOne\":\"We'll create a database to store both videos and competitors.\",\n  \"scopeTwo\":\"We'll create a simple form to quickly add competitors to your database.\",\n  \"scopeThree\":\"We'll build a daily flow that automatically generates video outlines based on the scrapes.\",\n  \"scopeFour\":\"We'll record documentation showing you how to manage and update the system.\",\n  \"scopeFive\":\"We'll provide one, two-hour team training session to teach your company how to use the system.\",\n  \"timelineOne\": \"Cold email system done & ready for warmup: February 8th, 2025\",\n  \"timelineTwo\": \"Cold email system fully warmed up & operational: February 28th, 2025\",\n  \"timelineThree\": \"10,000 outbound emails sent; analysis & training #1: March 10th, 2025\",\n  \"timelineFour\":\"One sales training per week alongside iteration & handoff: March 17th-April 1st, 2025\",\n}",
+              "role": "assistant"
+            },
+            {
+              "content": "={\n  \"companyName\":\"{{ $json['Company Name'] }}\",\n  \"problem\": \"{{ $json.Problem }}\",\n  \"solution\": \"{{ $json.Solution}}\",\n  \"scope\": \"{{ $json.Scope }}\",\n  \"currentDate\":\"{{ $now.toLocaleString({ dateStyle: 'medium' }) }}\",\n  \"howSoon\": \"{{ $json['How soon?'] }}\",\n  \"depositCost\": \"{{ $json.Cost }}\",\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "51658b7c-441d-4082-80e8-d16646f4a501",
+      "name": "OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -848,
+        512
+      ],
+      "typeVersion": 1.6
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission1').item.json.Email }}",
+        "subject": "Re: Proposal for LeftClick",
+        "emailType": "text",
+        "message": "=Hey Nick,\n\nThanks for the great call earlier. I had a moment after our chat to put together a detailed proposal for you—please take a look at your earliest convenience and let me know your thoughts.\n\nYou'll find it here: https://docs.google.com/presentation/d/{{ $json.presentationId }}/edit\n\nIf you have any questions, just shout. I've also sent over an invoice for the project (just to keep things convenient) and can get started anytime that's sorted.\n\nThanks,\nNick",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "57147abd-78cd-4dbd-ae95-3629d244412b",
+      "name": "Gmail1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -272,
+        512
+      ],
+      "webhookId": "470caaaa-62ff-4468-973d-4b1082cfe57a",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "formTitle": "Sales Call Logging Form",
+        "formDescription": "This form logs a sales call & automatically generates a proposal.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "First Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Last Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Website",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Solution",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Scope",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Cost",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "How soon?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "333171f2-c2df-4517-9cf0-f5cf919e84b9",
+      "name": "On form submission1",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -1024,
+        512
+      ],
+      "webhookId": "f0e8d4a0-8002-4804-aa90-4566fef26283",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "## PandaDoc AI Proposal Generator\n**This flow generates proposals using the paid PandaDoc solution, and also sends an invoice alongside it**.",
+        "height": 376,
+        "width": 1652
+      },
+      "id": "7bea2683-49ee-4837-9bd6-a35e3e34c169",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1328,
+        368
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pandadoc.com/public/v1/documents/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"name\": \"{{ $json.message.content.proposalTitle }}\",\n    \"fields\": {\n        \"Initials\": {\n            \"value\": \"EI\"\n        }\n    },\n    \"tokens\": [\n        {\n            \"name\": \"Client.Email\",\n            \"value\": \"{{ $('On form submission1').item.json.Email }}\"\n        },\n        {\n            \"name\": \"Sender.Email\",\n            \"value\": \"nick@leftclick.ai\"\n        },\n        {\n            \"name\": \"Client.Scope1\",\n            \"value\": \"{{ $json.message.content.scopeOne }}\"\n        },\n        {\n            \"name\": \"Client.Scope2\",\n            \"value\": \"{{ $json.message.content.scopeTwo }}\"\n        },\n        {\n            \"name\": \"Client.Scope3\",\n            \"value\": \"{{ $json.message.content.scopeThree }}\"\n        },\n        {\n            \"name\": \"Client.Scope4\",\n            \"value\": \"{{ $json.message.content.scopeFour }}\"\n        },\n        {\n            \"name\": \"Client.Scope5\",\n            \"value\": \"{{ $json.message.content.scopeFive }}\"\n        },\n        {\n            \"name\": \"Client.Company\",\n            \"value\": \"{{ $('On form submission1').item.json['Company Name'] }}\"\n        },\n        {\n            \"name\": \"Sender.Company\",\n            \"value\": \"WorkflowLoop\"\n        },\n        {\n            \"name\": \"Client.LastName\",\n            \"value\": \"{{ $('On form submission1').item.json['Last Name'] }}\"\n        },\n        {\n            \"name\": \"Sender.LastName\",\n            \"value\": \"Saraev\"\n        },\n        {\n            \"name\": \"Client.FirstName\",\n            \"value\": \"{{ $('On form submission1').item.json['First Name'] }}\"\n        },\n        {\n            \"name\": \"Client.Timeline1\",\n            \"value\": \"{{ $json.message.content.timelineOne }}\"\n        },\n        {\n            \"name\": \"Client.Timeline2\",\n            \"value\": \"{{ $json.message.content.timelineTwo }}\"\n        },\n        {\n            \"name\": \"Client.Timeline3\",\n            \"value\": \"{{ $json.message.content.timelineThree }}\"\n        },\n        {\n            \"name\": \"Client.Timeline4\",\n            \"value\": \"{{ $json.message.content.timelineFour }}\"\n        },\n        {\n            \"name\": \"Sender.FirstName\",\n            \"value\": \"Nick\"\n        },\n        {\n            \"name\": \"Client.ProblemText\",\n            \"value\": \"{{ $json.message.content.oneParagraphProblemSummary }}\"\n        },\n        {\n            \"name\": \"Client.ProblemTitle\",\n            \"value\": \"{{ $json.message.content.problemTitle }}\"\n        },\n        {\n            \"name\": \"Client.SolutionText\",\n            \"value\": {{ JSON.stringify($json.message.content.solutionText) }}\n        },\n        {\n            \"name\": \"Client.ProposalTitle\",\n            \"value\": \"{{ $json.message.content.proposalTitle }}\"\n        },\n        {\n            \"name\": \"Client.SolutionTitle\",\n            \"value\": \"{{ $json.message.content.solutionTitle }}\"\n        }\n    ],\n    \"metadata\": {},\n    \"recipients\": [\n        {\n            \"email\": \"{{ $('On form submission1').item.json.Email }}\",\n            \"role\": \"Client\"\n        },\n        {\n            \"email\": \"nick@leftclick.ai\",\n            \"company\": \"WorkflowLoop\",\n            \"last_name\": \"Saraev\",\n            \"first_name\": \"Nick\",\n            \"role\": \"Sender\"\n        }\n    ],\n    \"template_uuid\": \"yxge9HxfgWhvqKjFXwWEpS\",\n    \"pricing_tables\": [\n        {\n            \"name\": \"Pricing Table 1\",\n            \"options\": {\n                \"currency\": \"USD\"\n            },\n            \"sections\": [\n                {\n                    \"rows\": [\n                        {\n                            \"data\": {\n                                \"qty\": 1,\n                                \"name\": \"{{ $json.message.content.proposalTitle }}\",\n                                \"price\": {{ $('On form submission1').item.json.Cost.replace(\"$\",\"\").replace(\",\",\"\").toNumber() }}\n                            },\n                            \"options\": {\n                                \"optional\": false,\n                                \"qty_editable\": false,\n                                \"optional_selected\": false\n                            }\n                        }\n                    ],\n                    \"title\": \"Pricing Section\",\n                    \"default\": true\n                }\n            ]\n        }\n    ]\n}",
+        "options": {}
+      },
+      "id": "09e21656-15fe-4ca7-a112-29f488e1a994",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -496,
+        512
+      ],
+      "typeVersion": 4.2
+    }
+  ],
+  "connections": {
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Replace Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Text": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "On form submission1": [
+      {
+        "json": {
+          "Cost": "$3,525",
+          "Email": "nickolassaraev@gmail.com",
+          "Scope": "form you can fill out with competitors, that adds them to a db. once per day db is scraped and you get however many people are in the Sheet x however many vids they put out",
+          "Problem": "they're struggling making YouTube vids. Everything is really time intensive rn, mostly because they don't have scripts.",
+          "Website": "https://leftclick.ai",
+          "Solution": "AI script writing system, scrapes competitor youtube vids for ideas and rephrases best performing titles, then writes outlines",
+          "formMode": "test",
+          "How soon?": "two weeks",
+          "Last Name": "Saraev",
+          "First Name": "Peter",
+          "submittedAt": "2025-02-04T16:18:45.810-07:00",
+          "Company Name": "LeftCLick"
+        }
+      }
+    ]
+  },
+  "versionId": "c2cbd232-bb30-44b7-96fa-a6e64d333484",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "createdAt": "2025-09-19T06:53:26.210Z",
+      "updatedAt": "2025-09-19T06:53:26.210Z",
+      "role": "workflow:owner",
+      "workflowId": "Wu75b8Ny5xYCkjRc",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
