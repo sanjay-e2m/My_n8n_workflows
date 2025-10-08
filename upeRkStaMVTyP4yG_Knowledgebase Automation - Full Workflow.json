@@ -1,1 +1,337 @@
-File Created for my content
+{
+  "createdAt": "2025-10-04T09:26:10.343Z",
+  "updatedAt": "2025-10-04T09:49:09.000Z",
+  "id": "upeRkStaMVTyP4yG",
+  "name": "Knowledgebase Automation - Full Workflow",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-trigger-ManualTrigger-2024-10-27",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-manual-trigger-id",
+      "name": "Webhook Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        200
+      ],
+      "webhookId": "webhook-manual-trigger-webhook-id"
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "manualTriggerData",
+            "value": "Test manual trigger",
+            "type": "string"
+          }
+        ],
+        "options": {}
+      },
+      "id": "set-manual-trigger-data-id",
+      "name": "Set Manual Trigger Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "text": "Triggered workflow for knowledge ingestion"
+      },
+      "name": "Chat Trigger",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ],
+      "id": "node-1759569970278-2-8zlm56f6i"
+    },
+    {
+      "parameters": {
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "Sheet1!A1:D1",
+        "options": {}
+      },
+      "name": "Google Sheets Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ],
+      "id": "node-1759569970278-3-vh0s8he5z"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "knowledge_items",
+        "data": "={{$json[\"data\"]}}"
+      },
+      "name": "Supabase Store Embeddings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ],
+      "id": "node-1759569970278-4-4vmzvz5s1"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "operation": "classify",
+        "model": "Gemini",
+        "input": "={{$json[\"content\"]}}"
+      },
+      "name": "Gemini Preprocess",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ],
+      "id": "node-1759569970278-5-en32klogx"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "={{$json[\"query\"]}}",
+        "topK": 5
+      },
+      "name": "Supabase Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ],
+      "id": "node-1759569970278-6-5yhm00w8a"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-trigger-ChatTrigger-2024-10-27",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-chat-trigger-id",
+      "name": "Webhook Chat Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        450,
+        200
+      ],
+      "webhookId": "webhook-chat-trigger-webhook-id"
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "chatInput",
+            "value": "Generate a beautiful sunset image with mountains",
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "value": "12345",
+            "type": "string"
+          },
+          {
+            "name": "sessionId",
+            "value": "test-session",
+            "type": "string"
+          }
+        ],
+        "options": {}
+      },
+      "id": "set-chat-trigger-data-id",
+      "name": "Set Chat Trigger Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Manual Trigger Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Manual Trigger Data": {
+      "main": [
+        [
+          {
+            "node": "Chat Trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gemini Preprocess",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase Store Embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Preprocess": {
+      "main": [
+        [
+          {
+            "node": "Supabase Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Chat Trigger Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Chat Trigger Data": {
+      "main": [
+        [
+          {
+            "node": "Gemini Preprocess",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase Store Embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "9241ed24-e8af-4503-a1fa-86d5cc42ff17",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "createdAt": "2025-10-04T09:26:10.348Z",
+      "updatedAt": "2025-10-04T09:26:10.348Z",
+      "role": "workflow:owner",
+      "workflowId": "upeRkStaMVTyP4yG",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
