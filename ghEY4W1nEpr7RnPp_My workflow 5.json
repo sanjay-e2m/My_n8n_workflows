@@ -1,1 +1,670 @@
-File Created for my content
+{
+  "createdAt": "2025-09-25T06:06:04.678Z",
+  "updatedAt": "2025-10-06T11:20:06.000Z",
+  "id": "ghEY4W1nEpr7RnPp",
+  "name": "My workflow 5",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Extract automation JSON from webhook payload\nconst automationJson = $input.first().json.automation_json;\nconst testId = $input.first().json.test_id || `test_${Date.now()}`;\n\n// Parse the automation JSON\nlet automation;\ntry {\n  automation = typeof automationJson === 'string' ? JSON.parse(automationJson) : automationJson;\n} catch (error) {\n  return [{\n    json: {\n      error: 'Invalid automation JSON',\n      testId: testId,\n      status: 'failed'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    automation: automation,\n    testId: testId,\n    originalPayload: $input.first().json\n  }\n}];"
+      },
+      "id": "de0217c0-e310-437d-bc72-e0878db7ebb6",
+      "name": "Parse Automation JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        688
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=# n8n Automation Analyzer Agent Prompt\n\nYou are an expert n8n Automation Analyzer Agent. Your primary function is to analyze n8n workflow JSON files and generate comprehensive test data for automation testing.\n\n## Core Responsibilities\n\n### 1. Workflow Analysis\n- Parse and understand n8n workflow JSON structure\n- Identify all nodes, triggers, connections, and data flow\n- Classify automation type based on workflow patterns\n- Map data dependencies between nodes\n\n### 2. Input Field Extraction\n- Identify all required input fields from trigger nodes and form configurations\n- Determine field data types (text, email, number, date, boolean, object, array)\n- Detect conditional and optional fields\n- Analyze field validation requirements and constraints\n\n### 3. Test Data Generation\nGenerate four distinct test cases for each identified workflow:\n- **case_1**: Valid scenario with realistic, properly formatted data\n- **case_2**: Missing required fields to test error handling\n- **case_3**: Invalid data formats to test validation\n- **case_4**: Edge cases including boundary values, special characters, and extreme inputs\n\n### 4. Output Requirements\nReturn results in this exact JSON structure without any formatting characters like \\n or \\\":\n\n{\n  \"automationType\": \"descriptive automation type\",\n  \"requiredFields\": {\n    \"fieldName\": \"dataType\"\n  },\n  \"cases\": {\n    \"case_1\": {\n      \"description\": \"Valid case description\",\n      \"data\": {\n        \"fieldName\": \"realistic_value\"\n      }\n    },\n    \"case_2\": {\n      \"description\": \"Missing field case description\",\n      \"data\": {\n        \"fieldName\": \"\"\n      }\n    },\n    \"case_3\": {\n      \"description\": \"Invalid format case description\", \n      \"data\": {\n        \"fieldName\": \"invalid_value\"\n      }\n    },\n    \"case_4\": {\n      \"description\": \"Edge case description\",\n      \"data\": {\n        \"fieldName\": \"edge_case_value\"\n      }\n    }\n  }\n}\n\n\n## Analysis Guidelines\n\n### Automation Type Classification\n- Form Processing → Email/Database\n- API Integration → Data Transformation\n- Webhook → Multi-channel Notification\n- Scheduled → Data Sync/Backup\n- Event-driven → Conditional Workflows\n\n### Field Type Detection\n- **text**: String inputs, names, descriptions\n- **email**: Email address validation required\n- **number**: Integer or decimal values\n- **date**: Date/time formats\n- **boolean**: True/false values\n- **object**: JSON structures\n- **array**: List of values\n\n### Test Data Quality Standards\n- **Realistic**: Use believable names, emails, dates, and values\n- **Comprehensive**: Cover common scenarios and edge cases\n- **Consistent**: Maintain logical relationships between fields\n- **Diverse**: Include various formats and boundary conditions\n\n## Input Format Expected\nProvide n8n workflow JSON in this format:\n\n{{ $json.originalPayload['N8n Files'] }}\n\n\n## Key Rules\n1. Analyze the complete workflow structure before generating test data\n2. Ensure test cases cover all critical input validation scenarios  \n3. Maintain consistent JSON formatting without escape characters\n4. Generate contextually appropriate dummy data based on field purpose\n5. Include descriptions that clearly explain each test case objective\n\nReady to analyze your n8n workflow. Please provide the JSON file."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        688
+      ],
+      "id": "07e12ff8-27cd-4913-a92b-84fc9e8df3fd",
+      "name": "Message a model",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "formTitle": "n8n",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "N8n Files"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1232,
+        688
+      ],
+      "id": "687cc2e0-a55e-4a50-bc1f-3d51ecc2c540",
+      "name": "On form submission",
+      "webhookId": "7fefc0ee-f7e0-4a4a-a203-766522c003ca",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let input = $input.first().json.content.parts[0].text || \"\";\n\n// Step 1 — Remove Markdown fences\ninput = input.replace(/```json/g, \"\").replace(/```/g, \"\");\n\n// Step 2 — Unescape escaped characters\ninput = input.replace(/\\\\n/g, \" \")\n             .replace(/\\\\r/g, \" \")\n             .replace(/\\\\\"/g, '\"')\n             .replace(/\\\\\\\\/g, \"\\\\\");\n\n// Step 3 — Trim\ninput = input.trim();\n\n// Step 4 — Extract JSON between first '{' and last '}'\nlet firstBrace = input.indexOf(\"{\");\nlet lastBrace = input.lastIndexOf(\"}\");\nif (firstBrace === -1 || lastBrace === -1) {\n    return [{ json: { error: \"No JSON object found in input\" } }];\n}\nlet jsonString = input.substring(firstBrace, lastBrace + 1);\n\n// Step 5 — Repair common AI mistakes\n// 5a. Add quotes around property names\njsonString = jsonString.replace(/([{,]\\s*)([A-Za-z0-9_]+)\\s*:/g, '$1\"$2\":');\n// 5b. Remove trailing commas before } or ]\njsonString = jsonString.replace(/,\\s*([}\\]])/g, '$1');\n// 5c. Replace backticks with quotes\njsonString = jsonString.replace(/`/g, \"'\");\n// 5d. Fix single-quoted values → double quotes\njsonString = jsonString.replace(/:\\s*'([^']*)'/g, ': \"$1\"');\n\n// Step 6 — Truncation guard (try to fix unbalanced braces/quotes)\nlet openBraces = (jsonString.match(/{/g) || []).length;\nlet closeBraces = (jsonString.match(/}/g) || []).length;\nif (closeBraces < openBraces) {\n    jsonString += \"}\".repeat(openBraces - closeBraces);\n}\nlet openBrackets = (jsonString.match(/\\[/g) || []).length;\nlet closeBrackets = (jsonString.match(/\\]/g) || []).length;\nif (closeBrackets < openBrackets) {\n    jsonString += \"]\".repeat(openBrackets - closeBrackets);\n}\n\n// Step 7 — Try parsing\nlet parsedJSON;\ntry {\n    parsedJSON = JSON.parse(jsonString);\n} catch (error) {\n    return [{\n        json: {\n            error: \"Failed to parse JSON\",\n            errorMessage: error.message,\n            originalInput: input.slice(0, 200),     // show first 200 chars of AI output\n            processedString: jsonString.slice(0, 200) // show first 200 chars of repaired string\n        }\n    }];\n}\n\n// Step 8 — Return cleaned JSON\nreturn [{\n    json: parsedJSON\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        688
+      ],
+      "id": "8a048378-9bb1-40ac-9284-28f85cf26e9b",
+      "name": "Code",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "multipart"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "multipart/related; boundary=foo_bar_baz",
+        "body": "=--foo_bar_baz\nContent-Type: application/json; charset=UTF-8\n\n{\n  \"name\": \"fffffffffff\",\n  \"mimeType\": \"application/vnd.google-apps.document\"\n}\n\n--foo_bar_baz\nContent-Type: text/html; charset=UTF-8\n\n{{ $json['HTML Details'] }}\n\n--foo_bar_baz--",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -976,
+        1216
+      ],
+      "id": "78a5d5cd-5274-4c53-b146-79415a871d56",
+      "name": "Putting Content in the Google Docs1",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "formTitle": "n8n Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "HTML Details"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1232,
+        1216
+      ],
+      "id": "39f7f139-701b-4ceb-944b-16e9e56e9033",
+      "name": "On form submission1",
+      "webhookId": "cbbaee2f-aab2-47d5-96b7-aec2be7856a8",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract automation JSON from webhook payload\nconst automationJson = $input.first().json.automation_json;\nconst testId = $input.first().json.test_id || `test_${Date.now()}`;\n\n// Parse the automation JSON\nlet automation;\ntry {\n  automation = typeof automationJson === 'string' ? JSON.parse(automationJson) : automationJson;\n} catch (error) {\n  return [{\n    json: {\n      error: 'Invalid automation JSON',\n      testId: testId,\n      status: 'failed'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    automation: automation,\n    testId: testId,\n    originalPayload: $input.first().json\n  }\n}];"
+      },
+      "id": "e2d6765e-1582-444c-9f9a-b0b142bd3698",
+      "name": "Parse Automation JSON1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        928
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=# n8n Automation Analyzer Agent Prompt\n\nYou are an expert n8n Automation Analyzer Agent. Your primary function is to analyze n8n workflow JSON files and generate comprehensive test data for automation testing.\n\n## Core Responsibilities\n\n### 1. Workflow Analysis\n- Parse and understand n8n workflow JSON structure\n- Identify all nodes, triggers, connections, and data flow\n- Classify automation type based on workflow patterns\n- Map data dependencies between nodes\n\n### 2. Input Field Extraction\n- Identify all required input fields from trigger nodes and form configurations\n- Determine field data types (text, email, number, date, boolean, object, array)\n- Detect conditional and optional fields\n- Analyze field validation requirements and constraints\n\n### 3. Test Data Generation\nGenerate four distinct test cases for each identified workflow:\n- **case_1**: Valid scenario with realistic, properly formatted data\n- **case_2**: Missing required fields to test error handling\n- **case_3**: Invalid data formats to test validation\n- **case_4**: Edge cases including boundary values, special characters, and extreme inputs\n\n### 4. Output Requirements\nReturn results in this exact JSON structure without any formatting characters like \\n or \\\":\n\n{\n  \"automationType\": \"descriptive automation type\",\n  \"requiredFields\": {\n    \"fieldName\": \"dataType\"\n  },\n  \"cases\": {\n    \"case_1\": {\n      \"description\": \"Valid case description\",\n      \"data\": {\n        \"fieldName\": \"realistic_value\"\n      }\n    },\n    \"case_2\": {\n      \"description\": \"Missing field case description\",\n      \"data\": {\n        \"fieldName\": \"\"\n      }\n    },\n    \"case_3\": {\n      \"description\": \"Invalid format case description\", \n      \"data\": {\n        \"fieldName\": \"invalid_value\"\n      }\n    },\n    \"case_4\": {\n      \"description\": \"Edge case description\",\n      \"data\": {\n        \"fieldName\": \"edge_case_value\"\n      }\n    }\n  }\n}\n\n\n## Analysis Guidelines\n\n### Automation Type Classification\n- Form Processing → Email/Database\n- API Integration → Data Transformation\n- Webhook → Multi-channel Notification\n- Scheduled → Data Sync/Backup\n- Event-driven → Conditional Workflows\n\n### Field Type Detection\n- **text**: String inputs, names, descriptions\n- **email**: Email address validation required\n- **number**: Integer or decimal values\n- **date**: Date/time formats\n- **boolean**: True/false values\n- **object**: JSON structures\n- **array**: List of values\n\n### Test Data Quality Standards\n- **Realistic**: Use believable names, emails, dates, and values\n- **Comprehensive**: Cover common scenarios and edge cases\n- **Consistent**: Maintain logical relationships between fields\n- **Diverse**: Include various formats and boundary conditions\n\n## Input Format Expected\nProvide n8n workflow JSON in this format:\n\n{{ $json.originalPayload['N8n Files'] }}\n\n\n## Key Rules\n1. Analyze the complete workflow structure before generating test data\n2. Ensure test cases cover all critical input validation scenarios  \n3. Maintain consistent JSON formatting without escape characters\n4. Generate contextually appropriate dummy data based on field purpose\n5. Include descriptions that clearly explain each test case objective\n\nReady to analyze your n8n workflow. Please provide the JSON file."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        928
+      ],
+      "id": "47fe1a30-4c3d-47e7-bb4e-e5c04c0cba77",
+      "name": "Message a model1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "formTitle": "n8n",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "N8n Files"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1232,
+        928
+      ],
+      "id": "f6d32491-33aa-43d3-80b4-7643ca77c474",
+      "name": "On form submission2",
+      "webhookId": "54b5bda2-0cbd-47e0-9bae-8fa6a3feae7d",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "let input = $input.first().json.content.parts[0].text || \"\";\n\n// Step 1 — Remove Markdown fences\ninput = input.replace(/```json/g, \"\").replace(/```/g, \"\");\n\n// Step 2 — Unescape escaped characters\ninput = input.replace(/\\\\n/g, \" \")\n             .replace(/\\\\r/g, \" \")\n             .replace(/\\\\\"/g, '\"')\n             .replace(/\\\\\\\\/g, \"\\\\\");\n\n// Step 3 — Trim\ninput = input.trim();\n\n// Step 4 — Extract JSON between first '{' and last '}'\nlet firstBrace = input.indexOf(\"{\");\nlet lastBrace = input.lastIndexOf(\"}\");\nif (firstBrace === -1 || lastBrace === -1) {\n    return [{ json: { error: \"No JSON object found in input\" } }];\n}\nlet jsonString = input.substring(firstBrace, lastBrace + 1);\n\n// Step 5 — Repair common AI mistakes\n// 5a. Add quotes around property names\njsonString = jsonString.replace(/([{,]\\s*)([A-Za-z0-9_]+)\\s*:/g, '$1\"$2\":');\n// 5b. Remove trailing commas before } or ]\njsonString = jsonString.replace(/,\\s*([}\\]])/g, '$1');\n// 5c. Replace backticks with quotes\njsonString = jsonString.replace(/`/g, \"'\");\n// 5d. Fix single-quoted values → double quotes\njsonString = jsonString.replace(/:\\s*'([^']*)'/g, ': \"$1\"');\n\n// Step 6 — Truncation guard (try to fix unbalanced braces/quotes)\nlet openBraces = (jsonString.match(/{/g) || []).length;\nlet closeBraces = (jsonString.match(/}/g) || []).length;\nif (closeBraces < openBraces) {\n    jsonString += \"}\".repeat(openBraces - closeBraces);\n}\nlet openBrackets = (jsonString.match(/\\[/g) || []).length;\nlet closeBrackets = (jsonString.match(/\\]/g) || []).length;\nif (closeBrackets < openBrackets) {\n    jsonString += \"]\".repeat(openBrackets - closeBrackets);\n}\n\n// Step 7 — Try parsing\nlet parsedJSON;\ntry {\n    parsedJSON = JSON.parse(jsonString);\n} catch (error) {\n    return [{\n        json: {\n            error: \"Failed to parse JSON\",\n            errorMessage: error.message,\n            originalInput: input.slice(0, 200),     // show first 200 chars of AI output\n            processedString: jsonString.slice(0, 200) // show first 200 chars of repaired string\n        }\n    }];\n}\n\n// Step 8 — Return cleaned JSON\nreturn [{\n    json: parsedJSON\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        928
+      ],
+      "id": "120586a5-cfad-4f8c-a725-fceb52576889",
+      "name": "Code1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/edeba79e-4f38-49b3-b00f-3ff9ac384e71",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=Green Vegitable Ads"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        928
+      ],
+      "id": "255c2e1c-b8f2-45ea-bc2e-c45bfdde60be",
+      "name": "HTTP Request2",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "id": "f2381a65-ee09-4420-bc5a-3dbbdbd1981c",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -1120,
+        3472
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/webhook/n8n-testing",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=Green Vegitable Ads"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        3472
+      ],
+      "id": "0d68baa2-d574-415d-97db-d7046f236881",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Provide N8n updated Automation\"\n\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"text/plain\",\n            \"data\": \"{{ $json.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "id": "d5c92187-c42d-4be7-967d-9e1e071b3862",
+      "name": "Call Gemini API with PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -400,
+        3472
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "b7c81f92-eaec-42f8-82f9-48a2943f6c09",
+      "name": "Transform to base64 (pdf)",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -640,
+        3472
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK",
+          "mode": "list",
+          "cachedResultName": "workflow-modified.json",
+          "cachedResultUrl": "https://drive.google.com/file/d/1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -880,
+        3472
+      ],
+      "id": "3df6c6c9-e9d3-4f0e-8917-1f67304344d2",
+      "name": "Download file"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.first().json.candidates[0].content.parts[0].text;\n\n// Step 2 — Remove ```json or ``` wrappers\nraw = raw.replace(/```json\\s*/, \"\").replace(/```$/, \"\").trim();\n\n// Step 3 — Parse into JSON\nlet parsed;\ntry {\n    parsed = JSON.parse(raw);\n} catch (e) {\n    throw new Error(\"Failed to parse modified workflow JSON: \" + e.message);\n}\n\n// Step 4 — Extract modified_workflow\nconst modify_nodes = parsed.modified_workflow.nodes;\nconst modify_connections = parsed.modified_workflow.connections;\nconst changes_made = parsed.changes_made;\n\n// Step 5 — Return it\nreturn [{ json: { modify_nodes, modify_connections, changes_made } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        3472
+      ],
+      "id": "e65b67e3-e706-4515-b5f5-339c768409ee",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/api/v1/workflows",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.workflowPayload }}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        3472
+      ],
+      "id": "8f238546-f338-4d3d-acdf-9c34aeed7fc9",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "15a7ecb6-5335-4441-b2b3-a7818797cb86",
+              "name": "workflowPayload",
+              "value": "={{ \n  JSON.stringify({\n    \"name\": $json.changes_made.updated_references[0].node,\n    \"nodes\": $json.modify_nodes,\n    \"connections\": $json.modify_connections,\n    \"settings\": {\n      \"saveExecutionProgress\": true,\n      \"saveManualExecutions\": true,\n      \"saveDataErrorExecution\": \"all\",\n      \"saveDataSuccessExecution\": \"all\",\n      \"executionTimeout\": 3600,\n      \"errorWorkflow\": \"VzqKEW0ShTXA5vPj\",\n      \"timezone\": \"America/New_York\",\n      \"executionOrder\": \"v1\"\n    },\n    \"staticData\": {\n      \"lastId\": 1\n    },\n    \"shared\": [\n      {\n        \"role\": \"workflow:owner\",\n        \"workflowId\": \"2tUt1wbLX592XDdX\",\n        \"projectId\": \"2tUt1wbLX592XDdX\",\n        \"project\": {\n          \"name\": \"string\"\n        }\n      }\n    ]\n  })\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        3472
+      ],
+      "id": "04fa0a7d-bb53-4e47-9d4c-b581a4dcae58",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/api/v1/workflows/{{ $json.id }}/activate",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        3472
+      ],
+      "id": "687f904d-9974-4137-8057-9ad4d7075a35",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Parse Automation JSON": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Parse Automation JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    },
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "Putting Content in the Google Docs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Automation JSON1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission2": {
+      "main": [
+        [
+          {
+            "node": "Parse Automation JSON1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini API with PDF": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to base64 (pdf)": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini API with PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Transform to base64 (pdf)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "930159bc-d7e5-4827-9b70-8a549e30331d",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "createdAt": "2025-09-25T06:06:04.678Z",
+      "updatedAt": "2025-09-25T06:06:04.678Z",
+      "role": "workflow:owner",
+      "workflowId": "ghEY4W1nEpr7RnPp",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
