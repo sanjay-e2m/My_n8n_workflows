@@ -1,1 +1,687 @@
-File Created for my content
+{
+  "createdAt": "2025-10-06T13:09:50.963Z",
+  "updatedAt": "2025-10-06T13:10:42.000Z",
+  "id": "BXla2blR5DloUOng",
+  "name": "LinkedIn Job Finder Workflow-1759756190896",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-trigger-replacement-2024-12-04-152700",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4789-9012-34567890abcd",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        592
+      ],
+      "webhookId": "e7f8g9h0-i1j2-4k5l-6m7n-8o9p0q1r2stu"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2c3d4e5-f6a7-4890-a123-4567890abcde",
+              "name": "City",
+              "value": "New York",
+              "type": "string"
+            },
+            {
+              "id": "c3d4e5f6-a7b8-4901-b234-567890abcdef",
+              "name": "Job Title",
+              "value": "Software Engineer",
+              "type": "string"
+            },
+            {
+              "id": "d4e5f6a7-b8c9-4012-c345-67890abcdef0",
+              "name": "Country",
+              "value": "US",
+              "type": "string"
+            },
+            {
+              "id": "e5f6a7b8-c9d0-4123-d456-7890abcdef01",
+              "name": "Job_type",
+              "value": "Full-Time",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f7g8h9i0-j1k2-4l5m-6n7o-8p9q0r1s2tuv",
+      "name": "Set Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1096,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "35ed620d-b5d5-4e97-bcc5-52b283d85616",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "029b7e15-ca58-4c8f-9494-9926ee9a2e3f",
+      "name": "Check Final Status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -304,
+        592
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brightdata.com/datasets/v3/trigger",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "dataset_id",
+              "value": "gd_lpfll7v5hcqtkxl6l"
+            },
+            {
+              "name": "include_errors",
+              "value": "true"
+            },
+            {
+              "name": "type",
+              "value": "discover_new"
+            },
+            {
+              "name": "discover_by",
+              "value": "keyword"
+            },
+            {
+              "name": "limit_per_input",
+              "value": "2"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": [\n    {\n      \"location\": \"{{$node['Set Test Data'].json['City'] ? $node['Set Test Data'].json['City'].trim() : ''}}\",\n      \"keyword\": \"{{$node['Set Test Data'].json['Job Title'] ? $node['Set Test Data'].json['Job Title'].trim() : ''}}\",\n      \"country\": \"{{$node['Set Test Data'].json['Country'] ? $node['Set Test Data'].json['Country'].slice(0, 2).toUpperCase() : ''}}\",\n      \"time_range\": \"Past week\",\n      \"job_type\": \"{{ ['full-time', 'part-time', 'internship', 'contract', 'temporary'].includes($node['Set Test Data'].json['Job_type']?.toLowerCase()) ? $node['Set Test Data'].json['Job_type'] : '' }}\"\n    }\n  ],\n  \"custom_output_fields\": [\n    \"url\",\n    \"job_posting_id\",\n    \"job_title\",\n    \"company_name\",\n    \"company_id\",\n    \"job_location\",\n    \"job_summary\",\n    \"job_seniority_level\",\n    \"job_function\",\n    \"job_employment_type\",\n    \"job_industries\",\n    \"job_base_pay_range\",\n    \"company_url\",\n    \"job_posted_time\",\n    \"job_num_applicants\",\n    \"discovery_input\",\n    \"apply_link\",\n    \"country_code\",\n    \"title_id\",\n    \"company_logo\",\n    \"job_posted_date\",\n    \"job_poster\",\n    \"application_availability\",\n    \"job_description_formatted\",\n    \"base_salary\",\n    \"timestamp\",\n    \"error\",\n    \"error_code\",\n    \"warning\",\n    \"warning_code\"\n  ]\n}\n",
+        "options": {}
+      },
+      "id": "0a1fdb2b-cd64-4caf-9b74-17e4ba266061",
+      "name": "Create Snapshot ID",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -992,
+        592
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "=https://api.brightdata.com/datasets/v3/progress/{{ $json.snapshot_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6b95a31c-a510-4990-a35b-292ee13e7aae",
+      "name": "Check Snapshot Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -608,
+        592
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "id": "0c601ebc-3c5c-466c-a199-1be7ce6485e4",
+      "name": "Wait 1 minute",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -16,
+        960
+      ],
+      "webhookId": "7047efad-de41-4608-b95c-d3e0203ef620",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "url": "=https://api.brightdata.com/datasets/v3/snapshot/{{ $json.snapshot_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4072544b-df08-4e19-93ce-c4e44f999dbf",
+      "name": "Scrape Data from SnapID",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        272,
+        560
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rkd6TCJ4JG_qUHtcq3Tvv4FOhCLDoqNZAV90AJw8pJs",
+          "mode": "list",
+          "cachedResultName": "Linkdin-jobs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rkd6TCJ4JG_qUHtcq3Tvv4FOhCLDoqNZAV90AJw8pJs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rkd6TCJ4JG_qUHtcq3Tvv4FOhCLDoqNZAV90AJw8pJs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "url": "={{ $json.url }}",
+            "job_posting_id": "={{ $json.job_posting_id }}",
+            "job_location": "={{ $json.job_location }}",
+            "job_summary": "={{ $json.job_summary }}",
+            "company_name": "={{ $json.company_name }}",
+            "job_title": "={{ $json.job_title }}",
+            "company_id": "={{ $json.company_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_posting_id",
+              "displayName": "job_posting_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_title",
+              "displayName": "job_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_id",
+              "displayName": "company_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_location",
+              "displayName": "job_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_summary",
+              "displayName": "job_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f7051cae-0c7a-4f73-80bb-fa14833e20c4",
+      "name": "Update Job Lists in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        752,
+        560
+      ],
+      "typeVersion": 4.6
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "eb682420-fc89-4e01-a491-5a4a3f6bf10f",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.job_summary }}",
+              "rightValue": "={{ $json.shortCommonName }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e65968ab-bd98-4f9a-bf65-3cd3bb61c9e5",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        512,
+        560
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "f01bd215-c406-493c-a6e4-2b8ec5686b44",
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.records }}",
+              "rightValue": "={{ 0 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2423a0b5-dbb9-4440-8544-26150d324ded",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -16,
+        576
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "🔹 Search by Keyword — Form Trigger\nPurpose:\nCollects the user-submitted job search criteria including city, job title, country, and job type.\nTriggers the workflow when new search parameters are entered.",
+        "height": 340,
+        "width": 300,
+        "color": 2
+      },
+      "id": "bc386dc3-0c5c-4754-9a43-69d77b5e6bab",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1392,
+        432
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 LinkedIn Job Search Fetcher — HTTP Request (POST to Bright Data)\nPurpose:\nSends the job search criteria to Bright Data's LinkedIn dataset API.\nInitiates the scraping job to fetch LinkedIn job postings matching the criteria.",
+        "height": 380,
+        "width": 320,
+        "color": 3
+      },
+      "id": "60efc639-f848-45b6-ba5b-f1f36ef4492c",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1072,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 Check Delivery Status of Snap ID — HTTP Request (GET)\nPurpose:\nChecks the status of the scraping job using the returned snapshot_id.\nEnsures the task is complete before continuing to data extraction.",
+        "height": 360,
+        "width": 300,
+        "color": 4
+      },
+      "id": "549ff4e2-6b2d-4ac8-b9ff-e27556d8b947",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 Wait 1 minute — Wait Node\nPurpose:\nDelays the workflow execution by 1 minute.\nPrevents frequent polling of Bright Data API to reduce load and errors.",
+        "height": 280,
+        "width": 380,
+        "color": 7
+      },
+      "id": "26cc1eac-d84a-49ad-af7c-b2e40c61a770",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        832
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 Check Final Status — IF Node #1\nPurpose:\nConditionally checks if snapshot status is \"ready\".\nIf yes → proceed to download scraped data.\nIf no → loop back to Wait Node and recheck.",
+        "height": 360,
+        "width": 270,
+        "color": 5
+      },
+      "id": "912f76ec-540a-4bcf-a4b9-cf493629d951",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 Decode Snapshot from Response — HTTP Request (GET)\nPurpose:\nDownloads the final scraped LinkedIn job dataset using the ready snapshot ID.\nContains full job posting data in JSON format.",
+        "height": 400,
+        "width": 260,
+        "color": 6
+      },
+      "id": "195437ba-5ba0-4e97-9c60-8210155253c1",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        192,
+        368
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔹 Google Sheets — Google Sheets (AppendOrUpdate)\nPurpose:\nAppends each LinkedIn job result into your Google Sheet.\nCaptures data fields like job title, company name, location, job details, and apply links.",
+        "height": 400,
+        "width": 340,
+        "color": 3
+      },
+      "id": "2182c2c3-4688-4149-b82c-4ece8cad10ea",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        672,
+        400
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Test Data": {
+      "main": [
+        [
+          {
+            "node": "Create Snapshot ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Final Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 1 minute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Snapshot ID": {
+      "main": [
+        [
+          {
+            "node": "Check Snapshot Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Snapshot Status": {
+      "main": [
+        [
+          {
+            "node": "Check Final Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 minute": {
+      "main": [
+        [
+          {
+            "node": "Check Snapshot Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Data from SnapID": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Update Job Lists in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Scrape Data from SnapID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "e0b81c17-a27c-43c0-99b9-06cf5fb9b37b",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-06T13:09:50.965Z",
+      "updatedAt": "2025-10-06T13:09:50.965Z",
+      "role": "workflow:owner",
+      "workflowId": "BXla2blR5DloUOng",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
