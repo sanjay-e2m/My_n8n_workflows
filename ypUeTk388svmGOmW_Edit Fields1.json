@@ -1,1 +1,396 @@
-File Created for my content
+{
+  "createdAt": "2025-10-04T09:51:40.649Z",
+  "updatedAt": "2025-10-04T09:54:29.000Z",
+  "id": "ypUeTk388svmGOmW",
+  "name": "Edit Fields1",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook-replace-trigger-ManualTrigger-2024-07-01",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        3400
+      ],
+      "webhookId": "webhook-id-123"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "11111111-2222-3333-4444-555555555555",
+              "name": "manualTriggerData",
+              "value": "Test manual trigger",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b9a87654-dc32-10fe-9876-543210fedcba",
+      "name": "Set Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        3400
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f2381a65-ee09-4420-bc5a-3dbbdbd1981c",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -2000,
+        5000
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/webhook/n8n-testing",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=Green Vegitable Ads"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        3472
+      ],
+      "id": "0d68baa2-d574-415d-97db-d7046f236881",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Provide N8n updated Automation\"\n\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"text/plain\",\n            \"data\": \"{{ $json.data }}\"\n          }\n        }\n      ]\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "id": "d5c92187-c42d-4be7-967d-9e1e071b3862",
+      "name": "Call Gemini API with PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -400,
+        3472
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "b7c81f92-eaec-42f8-82f9-48a2943f6c09",
+      "name": "Transform to base64 (pdf)",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -640,
+        3472
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK",
+          "mode": "list",
+          "cachedResultName": "workflow-modified.json",
+          "cachedResultUrl": "https://drive.google.com/file/d/1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -880,
+        3472
+      ],
+      "id": "3df6c6c9-e9d3-4f0e-8917-1f67304344d2",
+      "name": "Download file"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.first().json.candidates[0].content.parts[0].text;\n\n// Step 2 — Remove or wrappers\nraw = raw.replace(/\\s*/, \"\").replace(/$/, \"\").trim();\n\n// Step 3 — Parse into JSON\nlet parsed;\ntry {\n    parsed = JSON.parse(raw);\n} catch (e) {\n    throw new Error(\"Failed to parse modified workflow JSON: \" + e.message);\n}\n\n// Step 4 — Extract modified_workflow\nconst modify_nodes = parsed.modified_workflow.nodes;\nconst modify_connections = parsed.modified_workflow.connections;\nconst changes_made = parsed.changes_made;\n\n// Step 5 — Return it\nreturn [{ json: { modify_nodes, modify_connections, changes_made } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        3472
+      ],
+      "id": "e65b67e3-e706-4515-b5f5-339c768409ee",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/api/v1/workflows",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.workflowPayload }}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        3472
+      ],
+      "id": "8f238546-f338-4d3d-acdf-9c34aeed7fc9",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "15a7ecb6-5335-4441-b2b3-a7818797cb86",
+              "name": "workflowPayload",
+              "value": "={{ \n  JSON.stringify({\n    \"name\": $json.changes_made.updated_references[0].node,\n    \"nodes\": $json.modify_nodes,\n    \"connections\": $json.modify_connections,\n    \"settings\": {\n      \"saveExecutionProgress\": true,\n      \"saveManualExecutions\": true,\n      \"saveDataErrorExecution\": \"all\",\n      \"saveDataSuccessExecution\": \"all\",\n      \"executionTimeout\": 3600,\n      \"errorWorkflow\": \"VzqKEW0ShTXA5vPj\",\n      \"timezone\": \"America/New_York\",\n      \"executionOrder\": \"v1\"\n    },\n    \"staticData\": {\n      \"lastId\": 1\n    },\n    \"shared\": [\n      {\n        \"role\": \"workflow:owner\",\n        \"workflowId\": \"2tUt1wbLX592XDdX\",\n        \"projectId\": \"2tUt1wbLX592XDdX\",\n        \"project\": {\n          \"name\": \"string\"\n        }\n      }\n    ]\n  })\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        3472
+      ],
+      "id": "04fa0a7d-bb53-4e47-9d4c-b581a4dcae58",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:5678/api/v1/workflows/{{ $json.id }}/activate",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        3472
+      ],
+      "id": "687f904d-9974-4137-8057-9ad4d7075a35",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Test Data": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini API with PDF": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to base64 (pdf)": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini API with PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Transform to base64 (pdf)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "66c0f5f2-1ce8-4742-b718-56f413acbbc7",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-04T09:51:40.653Z",
+      "updatedAt": "2025-10-04T09:51:40.653Z",
+      "role": "workflow:owner",
+      "workflowId": "ypUeTk388svmGOmW",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
