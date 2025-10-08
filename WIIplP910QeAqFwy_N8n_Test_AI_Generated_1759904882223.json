@@ -1,10 +1,10 @@
 {
   "createdAt": "2025-10-08T06:28:02.255Z",
-  "updatedAt": "2025-10-08T06:28:59.000Z",
+  "updatedAt": "2025-10-08T06:55:52.000Z",
   "id": "WIIplP910QeAqFwy",
   "name": "N8n_Test_AI_Generated_1759904882223",
-  "active": true,
-  "isArchived": false,
+  "active": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
@@ -388,7 +388,7 @@
       "typeVersion": 1,
       "position": [
         -3536,
-        -160
+        80
       ]
     }
   ],
@@ -590,7 +590,7 @@
   "staticData": {},
   "meta": null,
   "pinData": {},
-  "versionId": "222c265f-905f-4732-8f01-8bd5c1409be4",
+  "versionId": "e6474c14-19d0-4379-9874-aacab7d5db76",
   "triggerCount": 1,
   "shared": [
     {
