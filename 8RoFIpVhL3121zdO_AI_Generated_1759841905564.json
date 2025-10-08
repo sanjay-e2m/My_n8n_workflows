@@ -1,1 +1,276 @@
-File Created for my content
+{
+  "createdAt": "2025-10-07T12:58:25.612Z",
+  "updatedAt": "2025-10-07T13:02:56.000Z",
+  "id": "8RoFIpVhL3121zdO",
+  "name": "AI_Generated_1759841905564",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "function replaceTriggersWithWebhook(workflow) {\n  const nodes = workflow.nodes;\n  const connections = workflow.connections;\n\n  // 📌 List of all known trigger node types in n8n\n  const TRIGGER_NODE_TYPES = [\n    \"n8n-nodes-base.manualTrigger\",\n    \"n8n-nodes-base.cron\",\n    \"n8n-nodes-base.schedule\",\n    \"n8n-nodes-base.interval\",\n    \"n8n-nodes-base.webhook\",\n    \"n8n-nodes-base.respondToWebhook\",\n    \"n8n-nodes-base.waitForWebhook\",\n    \"n8n-nodes-base.fileTrigger\",\n    \"n8n-nodes-base.s3Trigger\",\n    \"n8n-nodes-base.googleDriveTrigger\",\n    \"n8n-nodes-base.emailTrigger\",\n    \"n8n-nodes-base.gmailTrigger\",\n    \"n8n-nodes-base.microsoftOutlookTrigger\",\n    \"n8n-nodes-base.rabbitMqTrigger\",\n    \"n8n-nodes-base.redisTrigger\",\n    \"n8n-nodes-base.kafkaTrigger\",\n    \"n8n-nodes-base.sqsTrigger\",\n    \"n8n-nodes-base.postgresTrigger\",\n    \"n8n-nodes-base.mySqlTrigger\",\n    \"n8n-nodes-base.mongoDbTrigger\",\n    \"n8n-nodes-base.slackTrigger\",\n    \"n8n-nodes-base.discordTrigger\",\n    \"n8n-nodes-base.telegramTrigger\",\n    \"n8n-nodes-base.microsoftTeamsTrigger\",\n    \"n8n-nodes-base.whatsAppTrigger\",\n    \"n8n-nodes-base.airtableTrigger\",\n    \"n8n-nodes-base.notionTrigger\",\n    \"n8n-nodes-base.googleSheetsTrigger\",\n    \"n8n-nodes-base.trelloTrigger\",\n    \"n8n-nodes-base.twitterTrigger\",\n    \"n8n-nodes-base.facebookTrigger\",\n    \"n8n-nodes-base.instagramTrigger\",\n    \"n8n-nodes-base.linkedinTrigger\",\n    \"n8n-nodes-base.shopifyTrigger\",\n    \"n8n-nodes-base.wooCommerceTrigger\",\n    \"n8n-nodes-base.stripeTrigger\",\n    \"n8n-nodes-base.paypalTrigger\",\n    \"n8n-nodes-base.githubTrigger\",\n    \"n8n-nodes-base.gitlabTrigger\",\n    \"n8n-nodes-base.jiraTrigger\",\n    \"n8n-nodes-base.zapierTrigger\",\n    \"n8n-nodes-base.formTrigger\",\n    \"n8n-nodes-base.googleFormsTrigger\",\n    \"n8n-nodes-base.typeformTrigger\"\n  ];\n\n  // 1️⃣ Skip if a webhook trigger already exists\n  if (nodes.some(n => n.type === \"n8n-nodes-base.webhook\")) {\n    console.log(\"Workflow already contains a webhook trigger. No changes made.\");\n    return workflow;\n  }\n\n  // 2️⃣ Find all trigger nodes except existing webhook triggers\n  const triggerNodes = nodes.filter(\n    n => TRIGGER_NODE_TYPES.includes(n.type) && n.type !== \"n8n-nodes-base.webhook\"\n  );\n\n  if (triggerNodes.length === 0) {\n    console.log(\"No trigger nodes to replace.\");\n    return workflow;\n  }\n\n  const basePos = triggerNodes[0].position || [200, 200];\n\n  // 3️⃣ Collect downstream connections of triggers\n  const downstreamConnections = [];\n  for (const [source, conn] of Object.entries(connections)) {\n    if (triggerNodes.some(n => n.name === source)) {\n      const outs = conn.main?.[0] || [];\n      downstreamConnections.push(...outs);\n      delete connections[source];\n    }\n  }\n\n  // 4️⃣ Create Webhook node\n  const webhookNode = {\n    id: \"webhook_1\",\n    name: \"Webhook Trigger\",\n    type: \"n8n-nodes-base.webhook\",\n    typeVersion: 1,\n    position: [basePos[0], basePos[1]],\n    parameters: {\n      httpMethod: \"POST\",\n      path: \"ai-workflow-test\",\n    },\n  };\n\n  // 5️⃣ Prepare example values to mimic trigger output\n  const exampleValues = [];\n  const triggerData = triggerNodes[0]?.parameters || {};\n  for (const key in triggerData) {\n    exampleValues.push({ name: key, value: triggerData[key] });\n  }\n  if (exampleValues.length === 0) {\n    exampleValues.push({ name: \"exampleField\", value: \"example value\" });\n    exampleValues.push({ name: \"source\", value: \"webhook-test\" });\n  }\n\n  // 6️⃣ Create Set node\n  const setNode = {\n    id: \"set_1\",\n    name: \"Set Sample Data\",\n    type: \"n8n-nodes-base.set\",\n    typeVersion: 1,\n    position: [basePos[0] + 250, basePos[1]],\n    parameters: {\n      values: {\n        string: exampleValues,\n      },\n    },\n  };\n\n  // 7️⃣ Remove trigger nodes\n  const updatedNodes = nodes.filter(n => !triggerNodes.includes(n));\n\n  // 8️⃣ Add new Webhook and Set nodes\n  updatedNodes.push(webhookNode, setNode);\n\n  // 9️⃣ Reconnect: Webhook → Set node\n  connections[\"Webhook Trigger\"] = {\n    main: [[{ node: \"Set Sample Data\", type: \"main\", index: 0 }]],\n  };\n\n  // 🔟 Reconnect: Set node → previous trigger downstream nodes\n  connections[\"Set Sample Data\"] = {\n    main: [downstreamConnections],\n  };\n\n  return {\n    ...workflow,\n    nodes: updatedNodes,\n    connections,\n  };\n}\n\n// --- MAIN ---\nconst workflowStr = $input.first().json.n8n_json;\nlet workflow;\n\ntry {\n  workflow = JSON.parse(workflowStr);\n} catch (e) {\n  return [{ json: { error: \"Invalid workflow JSON\" } }];\n}\n\nif (!workflow || !workflow.nodes) {\n  return [{ json: { error: \"Invalid workflow input\" } }];\n}\n\ntry {\n  const updated = replaceTriggersWithWebhook(workflow);\n  return [\n    {\n      json: {\n        status: \"success\",\n        updated_workflow: updated,\n      },\n    },\n  ];\n} catch (err) {\n  return [\n    {\n      json: {\n        status: \"error\",\n        message: err.message,\n      },\n    },\n  ];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -160
+      ],
+      "id": "6e78ee22-6d60-4990-a0f2-f98ddd5b505f",
+      "name": "Parse & Validate Response5",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad0c73e2-7ffd-47fc-ae11-397ef5cb55cd",
+              "name": "n8n_json",
+              "value": "{   \"nodes\": [     {       \"parameters\": {},       \"type\": \"n8n-nodes-base.manualTrigger\",       \"typeVersion\": 1,       \"position\": [         0,         0       ],       \"id\": \"226611ab-30cf-400a-b75b-835b7cce6c65\",       \"name\": \"When clicking ‘Execute workflow’\"     },     {       \"parameters\": {         \"jsCode\": \"function replaceTriggersWithWebhook(workflow) {\\n  const nodes = workflow.nodes;\\n  const connections = workflow.connections;\\n\\n  // 📌 List of all known trigger node types in n8n\\n  const TRIGGER_NODE_TYPES = [\\n    \\\"n8n-nodes-base.manualTrigger\\\",\\n    \\\"n8n-nodes-base.cron\\\",\\n    \\\"n8n-nodes-base.schedule\\\",\\n    \\\"n8n-nodes-base.interval\\\",\\n    \\\"n8n-nodes-base.webhook\\\",\\n    \\\"n8n-nodes-base.respondToWebhook\\\",\\n    \\\"n8n-nodes-base.waitForWebhook\\\",\\n    \\\"n8n-nodes-base.fileTrigger\\\",\\n    \\\"n8n-nodes-base.s3Trigger\\\",\\n    \\\"n8n-nodes-base.googleDriveTrigger\\\",\\n    \\\"n8n-nodes-base.emailTrigger\\\",\\n    \\\"n8n-nodes-base.gmailTrigger\\\",\\n    \\\"n8n-nodes-base.microsoftOutlookTrigger\\\",\\n    \\\"n8n-nodes-base.rabbitMqTrigger\\\",\\n    \\\"n8n-nodes-base.redisTrigger\\\",\\n    \\\"n8n-nodes-base.kafkaTrigger\\\",\\n    \\\"n8n-nodes-base.sqsTrigger\\\",\\n    \\\"n8n-nodes-base.postgresTrigger\\\",\\n    \\\"n8n-nodes-base.mySqlTrigger\\\",\\n    \\\"n8n-nodes-base.mongoDbTrigger\\\",\\n    \\\"n8n-nodes-base.slackTrigger\\\",\\n    \\\"n8n-nodes-base.discordTrigger\\\",\\n    \\\"n8n-nodes-base.telegramTrigger\\\",\\n    \\\"n8n-nodes-base.microsoftTeamsTrigger\\\",\\n    \\\"n8n-nodes-base.whatsAppTrigger\\\",\\n    \\\"n8n-nodes-base.airtableTrigger\\\",\\n    \\\"n8n-nodes-base.notionTrigger\\\",\\n    \\\"n8n-nodes-base.googleSheetsTrigger\\\",\\n    \\\"n8n-nodes-base.trelloTrigger\\\",\\n    \\\"n8n-nodes-base.twitterTrigger\\\",\\n    \\\"n8n-nodes-base.facebookTrigger\\\",\\n    \\\"n8n-nodes-base.instagramTrigger\\\",\\n    \\\"n8n-nodes-base.linkedinTrigger\\\",\\n    \\\"n8n-nodes-base.shopifyTrigger\\\",\\n    \\\"n8n-nodes-base.wooCommerceTrigger\\\",\\n    \\\"n8n-nodes-base.stripeTrigger\\\",\\n    \\\"n8n-nodes-base.paypalTrigger\\\",\\n    \\\"n8n-nodes-base.githubTrigger\\\",\\n    \\\"n8n-nodes-base.gitlabTrigger\\\",\\n    \\\"n8n-nodes-base.jiraTrigger\\\",\\n    \\\"n8n-nodes-base.zapierTrigger\\\",\\n    \\\"n8n-nodes-base.formTrigger\\\",\\n    \\\"n8n-nodes-base.googleFormsTrigger\\\",\\n    \\\"n8n-nodes-base.typeformTrigger\\\"\\n  ];\\n\\n  // 1️⃣ Skip if a webhook trigger already exists\\n  if (nodes.some(n => n.type === \\\"n8n-nodes-base.webhook\\\")) {\\n    console.log(\\\"Workflow already contains a webhook trigger. No changes made.\\\");\\n    return workflow;\\n  }\\n\\n  // 2️⃣ Find all trigger nodes except existing webhook triggers\\n  const triggerNodes = nodes.filter(\\n    n => TRIGGER_NODE_TYPES.includes(n.type) && n.type !== \\\"n8n-nodes-base.webhook\\\"\\n  );\\n\\n  if (triggerNodes.length === 0) {\\n    console.log(\\\"No trigger nodes to replace.\\\");\\n    return workflow;\\n  }\\n\\n  const basePos = triggerNodes[0].position || [200, 200];\\n\\n  // 3️⃣ Collect downstream connections of triggers\\n  const downstreamConnections = [];\\n  for (const [source, conn] of Object.entries(connections)) {\\n    if (triggerNodes.some(n => n.name === source)) {\\n      const outs = conn.main?.[0] || [];\\n      downstreamConnections.push(...outs);\\n      delete connections[source];\\n    }\\n  }\\n\\n  // 4️⃣ Create Webhook node\\n  const webhookNode = {\\n    id: \\\"webhook_1\\\",\\n    name: \\\"Webhook Trigger\\\",\\n    type: \\\"n8n-nodes-base.webhook\\\",\\n    typeVersion: 1,\\n    position: [basePos[0], basePos[1]],\\n    parameters: {\\n      httpMethod: \\\"POST\\\",\\n      path: \\\"ai-workflow-test\\\",\\n    },\\n  };\\n\\n  // 5️⃣ Prepare example values to mimic trigger output\\n  const exampleValues = [];\\n  const triggerData = triggerNodes[0]?.parameters || {};\\n  for (const key in triggerData) {\\n    exampleValues.push({ name: key, value: triggerData[key] });\\n  }\\n  if (exampleValues.length === 0) {\\n    exampleValues.push({ name: \\\"exampleField\\\", value: \\\"example value\\\" });\\n    exampleValues.push({ name: \\\"source\\\", value: \\\"webhook-test\\\" });\\n  }\\n\\n  // 6️⃣ Create Set node\\n  const setNode = {\\n    id: \\\"set_1\\\",\\n    name: \\\"Set Sample Data\\\",\\n    type: \\\"n8n-nodes-base.set\\\",\\n    typeVersion: 1,\\n    position: [basePos[0] + 250, basePos[1]],\\n    parameters: {\\n      values: {\\n        string: exampleValues,\\n      },\\n    },\\n  };\\n\\n  // 7️⃣ Remove trigger nodes\\n  const updatedNodes = nodes.filter(n => !triggerNodes.includes(n));\\n\\n  // 8️⃣ Add new Webhook and Set nodes\\n  updatedNodes.push(webhookNode, setNode);\\n\\n  // 9️⃣ Reconnect: Webhook → Set node\\n  connections[\\\"Webhook Trigger\\\"] = {\\n    main: [[{ node: \\\"Set Sample Data\\\", type: \\\"main\\\", index: 0 }]],\\n  };\\n\\n  // 🔟 Reconnect: Set node → previous trigger downstream nodes\\n  connections[\\\"Set Sample Data\\\"] = {\\n    main: [downstreamConnections],\\n  };\\n\\n  return {\\n    ...workflow,\\n    nodes: updatedNodes,\\n    connections,\\n  };\\n}\\n\\n// --- MAIN ---\\nconst workflowStr = $input.first().json.n8n_json;\\nlet workflow;\\n\\ntry {\\n  workflow = JSON.parse(workflowStr);\\n} catch (e) {\\n  return [{ json: { error: \\\"Invalid workflow JSON\\\" } }];\\n}\\n\\nif (!workflow || !workflow.nodes) {\\n  return [{ json: { error: \\\"Invalid workflow input\\\" } }];\\n}\\n\\ntry {\\n  const updated = replaceTriggersWithWebhook(workflow);\\n  return [\\n    {\\n      json: {\\n        status: \\\"success\\\",\\n        updated_workflow: updated,\\n      },\\n    },\\n  ];\\n} catch (err) {\\n  return [\\n    {\\n      json: {\\n        status: \\\"error\\\",\\n        message: err.message,\\n      },\\n    },\\n  ];\\n}\\n\"       },       \"type\": \"n8n-nodes-base.code\",       \"typeVersion\": 2,       \"position\": [         432,         -160       ],       \"id\": \"6e78ee22-6d60-4990-a0f2-f98ddd5b505f\",       \"name\": \"Parse & Validate Response5\",       \"onError\": \"continueErrorOutput\"     },     {       \"parameters\": {         \"assignments\": {           \"assignments\": [             {               \"id\": \"ad0c73e2-7ffd-47fc-ae11-397ef5cb55cd\",               \"name\": \"n8n_json\",               \"value\": \"{   \\\"nodes\\\": [     {       \\\"parameters\\\": {         \\\"method\\\": \\\"POST\\\",         \\\"url\\\": \\\"=http://localhost:5678/api/v1/workflows/{{ $json.id }}/activate\\\",         \\\"sendHeaders\\\": true,         \\\"headerParameters\\\": {           \\\"parameters\\\": [             {               \\\"name\\\": \\\"accept\\\",               \\\"value\\\": \\\"application/json\\\"             },             {               \\\"name\\\": \\\"X-N8N-API-KEY\\\",               \\\"value\\\": \\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiZWM5ODViNi00YzViLTRmNzYtYTI4Yy01ODg0NDlkMjYxN2MiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU5MjE5NzM5LCJleHAiOjE3NjE3OTY4MDB9.TRWvE1XaX6vXqLV_Op6Wgf4Knbj8kgWrbecBlDFL97A\\\"             }           ]         },         \\\"sendBody\\\": true,         \\\"contentType\\\": \\\"form-urlencoded\\\",         \\\"bodyParameters\\\": {           \\\"parameters\\\": [             {}           ]         },         \\\"options\\\": {}       },       \\\"type\\\": \\\"n8n-nodes-base.httpRequest\\\",       \\\"typeVersion\\\": 4.2,       \\\"position\\\": [         448,         3472       ],       \\\"id\\\": \\\"687f904d-9974-4137-8057-9ad4d7075a35\\\",       \\\"name\\\": \\\"HTTP Request\\\"     },     {       \\\"parameters\\\": {         \\\"assignments\\\": {           \\\"assignments\\\": [             {               \\\"id\\\": \\\"15a7ecb6-5335-4441-b2b3-a7818797cb86\\\",               \\\"name\\\": \\\"workflowPayload\\\",               \\\"value\\\": \\\"={{ \\\\n  JSON.stringify({\\\\n    \\\\\\\"name\\\\\\\": $json.changes_made.updated_references[0].node,\\\\n    \\\\\\\"nodes\\\\\\\": $json.modify_nodes,\\\\n    \\\\\\\"connections\\\\\\\": $json.modify_connections,\\\\n    \\\\\\\"settings\\\\\\\": {\\\\n      \\\\\\\"saveExecutionProgress\\\\\\\": true,\\\\n      \\\\\\\"saveManualExecutions\\\\\\\": true,\\\\n      \\\\\\\"saveDataErrorExecution\\\\\\\": \\\\\\\"all\\\\\\\",\\\\n      \\\\\\\"saveDataSuccessExecution\\\\\\\": \\\\\\\"all\\\\\\\",\\\\n      \\\\\\\"executionTimeout\\\\\\\": 3600,\\\\n      \\\\\\\"errorWorkflow\\\\\\\": \\\\\\\"VzqKEW0ShTXA5vPj\\\\\\\",\\\\n      \\\\\\\"timezone\\\\\\\": \\\\\\\"America/New_York\\\\\\\",\\\\n      \\\\\\\"executionOrder\\\\\\\": \\\\\\\"v1\\\\\\\"\\\\n    },\\\\n    \\\\\\\"staticData\\\\\\\": {\\\\n      \\\\\\\"lastId\\\\\\\": 1\\\\n    },\\\\n    \\\\\\\"shared\\\\\\\": [\\\\n      {\\\\n        \\\\\\\"role\\\\\\\": \\\\\\\"workflow:owner\\\\\\\",\\\\n        \\\\\\\"workflowId\\\\\\\": \\\\\\\"2tUt1wbLX592XDdX\\\\\\\",\\\\n        \\\\\\\"projectId\\\\\\\": \\\\\\\"2tUt1wbLX592XDdX\\\\\\\",\\\\n        \\\\\\\"project\\\\\\\": {\\\\n          \\\\\\\"name\\\\\\\": \\\\\\\"string\\\\\\\"\\\\n        }\\\\n      }\\\\n    ]\\\\n  })\\\\n}}\\\",               \\\"type\\\": \\\"string\\\"             }           ]         },         \\\"options\\\": {}       },       \\\"type\\\": \\\"n8n-nodes-base.set\\\",       \\\"typeVersion\\\": 3.4,       \\\"position\\\": [         32,         3472       ],       \\\"id\\\": \\\"04fa0a7d-bb53-4e47-9d4c-b581a4dcae58\\\",       \\\"name\\\": \\\"Edit Fields1\\\"     },     {       \\\"parameters\\\": {         \\\"method\\\": \\\"POST\\\",         \\\"url\\\": \\\"http://localhost:5678/api/v1/workflows\\\",         \\\"sendHeaders\\\": true,         \\\"headerParameters\\\": {           \\\"parameters\\\": [             {               \\\"name\\\": \\\"X-N8N-API-KEY\\\",               \\\"value\\\": \\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiZWM5ODViNi00YzViLTRmNzYtYTI4Yy01ODg0NDlkMjYxN2MiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU5MjE5NzM5LCJleHAiOjE3NjE3OTY4MDB9.TRWvE1XaX6vXqLV_Op6Wgf4Knbj8kgWrbecBlDFL97A\\\"             },             {               \\\"name\\\": \\\"Content-Type\\\",               \\\"value\\\": \\\"application/json\\\"             }           ]         },         \\\"sendBody\\\": true,         \\\"specifyBody\\\": \\\"json\\\",         \\\"jsonBody\\\": \\\"={{ $json.workflowPayload }}\\\",         \\\"options\\\": {           \\\"redirect\\\": {             \\\"redirect\\\": {}           }         }       },       \\\"type\\\": \\\"n8n-nodes-base.httpRequest\\\",       \\\"typeVersion\\\": 4.2,       \\\"position\\\": [         240,         3472       ],       \\\"id\\\": \\\"8f238546-f338-4d3d-acdf-9c34aeed7fc9\\\",       \\\"name\\\": \\\"HTTP Request4\\\"     },     {       \\\"parameters\\\": {         \\\"jsCode\\\": \\\"let raw = $input.first().json.candidates[0].content.parts[0].text;\\\\n\\\\n// Step 2 — Remove ```json or ``` wrappers\\\\nraw = raw.replace(/```json\\\\\\\\s*/, \\\\\\\"\\\\\\\").replace(/```$/, \\\\\\\"\\\\\\\").trim();\\\\n\\\\n// Step 3 — Parse into JSON\\\\nlet parsed;\\\\ntry {\\\\n    parsed = JSON.parse(raw);\\\\n} catch (e) {\\\\n    throw new Error(\\\\\\\"Failed to parse modified workflow JSON: \\\\\\\" + e.message);\\\\n}\\\\n\\\\n// Step 4 — Extract modified_workflow\\\\nconst modify_nodes = parsed.modified_workflow.nodes;\\\\nconst modify_connections = parsed.modified_workflow.connections;\\\\nconst changes_made = parsed.changes_made;\\\\n\\\\n// Step 5 — Return it\\\\nreturn [{ json: { modify_nodes, modify_connections, changes_made } }];\\\"       },       \\\"type\\\": \\\"n8n-nodes-base.code\\\",       \\\"typeVersion\\\": 2,       \\\"position\\\": [         -176,         3472       ],       \\\"id\\\": \\\"e65b67e3-e706-4515-b5f5-339c768409ee\\\",       \\\"name\\\": \\\"Code in JavaScript1\\\"     },     {       \\\"parameters\\\": {         \\\"operation\\\": \\\"download\\\",         \\\"fileId\\\": {           \\\"__rl\\\": true,           \\\"value\\\": \\\"1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK\\\",           \\\"mode\\\": \\\"list\\\",           \\\"cachedResultName\\\": \\\"workflow-modified.json\\\",           \\\"cachedResultUrl\\\": \\\"https://drive.google.com/file/d/1fezi27z7klehmSsDmX9Qn4BmrgCVH5UK/view?usp=drivesdk\\\"         },         \\\"options\\\": {}       },       \\\"type\\\": \\\"n8n-nodes-base.googleDrive\\\",       \\\"typeVersion\\\": 3,       \\\"position\\\": [         -880,         3472       ],       \\\"id\\\": \\\"3df6c6c9-e9d3-4f0e-8917-1f67304344d2\\\",       \\\"name\\\": \\\"Download file\\\",       \\\"credentials\\\": {         \\\"googleDriveOAuth2Api\\\": {           \\\"id\\\": \\\"OsvYgSCXPizqgBCe\\\",           \\\"name\\\": \\\"Google Drive account\\\"         }       }     },     {       \\\"parameters\\\": {         \\\"operation\\\": \\\"binaryToPropery\\\",         \\\"options\\\": {}       },       \\\"id\\\": \\\"b7c81f92-eaec-42f8-82f9-48a2943f6c09\\\",       \\\"name\\\": \\\"Transform to base64 (pdf)\\\",       \\\"type\\\": \\\"n8n-nodes-base.extractFromFile\\\",       \\\"position\\\": [         -640,         3472       ],       \\\"typeVersion\\\": 1     },     {       \\\"parameters\\\": {         \\\"method\\\": \\\"POST\\\",         \\\"url\\\": \\\"=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent\\\",         \\\"authentication\\\": \\\"predefinedCredentialType\\\",         \\\"nodeCredentialType\\\": \\\"googlePalmApi\\\",         \\\"sendBody\\\": true,         \\\"specifyBody\\\": \\\"json\\\",         \\\"jsonBody\\\": \\\"={\\\\n  \\\\\\\"contents\\\\\\\": [\\\\n    {\\\\n      \\\\\\\"parts\\\\\\\": [\\\\n        {\\\\n          \\\\\\\"text\\\\\\\": \\\\\\\"Provide N8n updated Automation\\\\\\\"\\\\n\\\\n        },\\\\n        {\\\\n          \\\\\\\"inline_data\\\\\\\": {\\\\n            \\\\\\\"mime_type\\\\\\\": \\\\\\\"text/plain\\\\\\\",\\\\n            \\\\\\\"data\\\\\\\": \\\\\\\"{{ $json.data }}\\\\\\\"\\\\n          }\\\\n        }\\\\n      ]\\\\n    }\\\\n  ]\\\\n}\\\\n\\\",         \\\"options\\\": {}       },       \\\"id\\\": \\\"d5c92187-c42d-4be7-967d-9e1e071b3862\\\",       \\\"name\\\": \\\"Call Gemini API with PDF\\\",       \\\"type\\\": \\\"n8n-nodes-base.httpRequest\\\",       \\\"position\\\": [         -400,         3472       ],       \\\"typeVersion\\\": 4.2,       \\\"credentials\\\": {         \\\"httpQueryAuth\\\": {           \\\"id\\\": \\\"aYanB0hdXhRVu1Vf\\\",           \\\"name\\\": \\\"Query Auth account\\\"         },         \\\"googlePalmApi\\\": {           \\\"id\\\": \\\"ZW9anOdgJHYYnEsa\\\",           \\\"name\\\": \\\"Google Gemini(PaLM) Api account\\\"         }       }     },     {       \\\"parameters\\\": {         \\\"method\\\": \\\"POST\\\",         \\\"url\\\": \\\"=http://localhost:5678/webhook/n8n-testing\\\",         \\\"sendBody\\\": true,         \\\"bodyParameters\\\": {           \\\"parameters\\\": [             {               \\\"name\\\": \\\"input\\\",               \\\"value\\\": \\\"=Green Vegitable Ads\\\"             }           ]         },         \\\"options\\\": {}       },       \\\"type\\\": \\\"n8n-nodes-base.httpRequest\\\",       \\\"typeVersion\\\": 4.2,       \\\"position\\\": [         688,         3472       ],       \\\"id\\\": \\\"0d68baa2-d574-415d-97db-d7046f236881\\\",       \\\"name\\\": \\\"HTTP Request3\\\"     },     {       \\\"parameters\\\": {},       \\\"id\\\": \\\"f2381a65-ee09-4420-bc5a-3dbbdbd1981c\\\",       \\\"name\\\": \\\"When clicking ‘Test workflow’\\\",       \\\"type\\\": \\\"n8n-nodes-base.manualTrigger\\\",       \\\"position\\\": [         -1120,         3472       ],       \\\"typeVersion\\\": 1     }   ],   \\\"connections\\\": {     \\\"HTTP Request\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"HTTP Request3\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"Edit Fields1\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"HTTP Request4\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"HTTP Request4\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"HTTP Request\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"Code in JavaScript1\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"Edit Fields1\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"Download file\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"Transform to base64 (pdf)\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"Transform to base64 (pdf)\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"Call Gemini API with PDF\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"Call Gemini API with PDF\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"Code in JavaScript1\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     },     \\\"When clicking ‘Test workflow’\\\": {       \\\"main\\\": [         [           {             \\\"node\\\": \\\"Download file\\\",             \\\"type\\\": \\\"main\\\",             \\\"index\\\": 0           }         ]       ]     }   },   \\\"pinData\\\": {},   \\\"meta\\\": {     \\\"templateCredsSetupCompleted\\\": true,     \\\"instanceId\\\": \\\"d3a93d96b87c932ca5bb5705abcde014d342090fde7086055f4df32bb7192bd5\\\"   } }\",               \"type\": \"string\"             }           ]         },         \"options\": {}       },       \"type\": \"n8n-nodes-base.set\",       \"typeVersion\": 3.4,       \"position\": [         208,         0       ],       \"id\": \"ddb49ff7-efa5-4424-83c5-64a5164e4ab4\",       \"name\": \"Edit Fields\"     },     {       \"parameters\": {         \"jsCode\": \"// --- MAIN ---\\nconst workflowStr = $input.first().json.n8n_json;\\nlet workflow;\\n\\ntry {\\n  workflow = JSON.parse(workflowStr);\\n} catch (e) {\\n  return [{ json: { error: \\\"Invalid workflow JSON\\\" } }];\\n}\\n\\nif (!workflow || !workflow.nodes) {\\n  return [{ json: { error: \\\"Invalid workflow input\\\" } }];\\n}\\n\\n// Check if any node is deactivated\\nconst hasDeactivatedNodes = workflow.nodes.some(n => n.disabled === true);\\n\\nreturn [\\n  {\\n    json: {\\n      hasDeactivatedNodes: hasDeactivatedNodes\\n    }\\n  }\\n];\\n\"       },       \"type\": \"n8n-nodes-base.code\",       \"typeVersion\": 2,       \"position\": [         432,         160       ],       \"id\": \"fd811bf5-b213-4164-9873-e2c87859ad86\",       \"name\": \"Parse & Validate Response\",       \"onError\": \"continueErrorOutput\"     },     {       \"parameters\": {},       \"type\": \"n8n-nodes-base.merge\",       \"typeVersion\": 3.2,       \"position\": [         784,         -16       ],       \"id\": \"91ec0a24-40b0-477c-ab41-e8ab4ec32daa\",       \"name\": \"Merge\"     },     {       \"parameters\": {         \"jsCode\": \"const status = $input.all().find(i => i.json.status !== undefined)?.json.status || null;\\nconst updated_workflow = $input.all().find(i => i.json.updated_workflow !== undefined)?.json.updated_workflow || null;\\nconst hasDeactivatedNodes = $input.all().find(i => i.json.hasDeactivatedNodes !== undefined)?.json.hasDeactivatedNodes || false;\\n\\nreturn [\\n  {\\n    json: {\\n      status,\\n      updated_workflow,\\n      hasDeactivatedNodes\\n    }\\n  }\\n];\\n\"       },       \"type\": \"n8n-nodes-base.code\",       \"typeVersion\": 2,       \"position\": [         976,         -16       ],       \"id\": \"c0f2e782-7e71-47c0-9c9e-6c57d333b07a\",       \"name\": \"Code in JavaScript\"     }   ],   \"connections\": {     \"When clicking ‘Execute workflow’\": {       \"main\": [         [           {             \"node\": \"Edit Fields\",             \"type\": \"main\",             \"index\": 0           }         ]       ]     },     \"Parse & Validate Response5\": {       \"main\": [         [           {             \"node\": \"Merge\",             \"type\": \"main\",             \"index\": 0           }         ]       ]     },     \"Edit Fields\": {       \"main\": [         [           {             \"node\": \"Parse & Validate Response5\",             \"type\": \"main\",             \"index\": 0           },           {             \"node\": \"Parse & Validate Response\",             \"type\": \"main\",             \"index\": 0           }         ]       ]     },     \"Parse & Validate Response\": {       \"main\": [         [           {             \"node\": \"Merge\",             \"type\": \"main\",             \"index\": 1           }         ]       ]     },     \"Merge\": {       \"main\": [         [           {             \"node\": \"Code in JavaScript\",             \"type\": \"main\",             \"index\": 0           }         ]       ]     }   },   \"pinData\": {},   \"meta\": {     \"templateCredsSetupCompleted\": true,     \"instanceId\": \"d3a93d96b87c932ca5bb5705abcde014d342090fde7086055f4df32bb7192bd5\"   } }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "ddb49ff7-efa5-4424-83c5-64a5164e4ab4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- MAIN ---\nconst workflowStr = $input.first().json.n8n_json;\nlet workflow;\n\ntry {\n  workflow = JSON.parse(workflowStr);\n} catch (e) {\n  return [{ json: { error: \"Invalid workflow JSON\" } }];\n}\n\nif (!workflow || !workflow.nodes) {\n  return [{ json: { error: \"Invalid workflow input\" } }];\n}\n\n// Check if any node is deactivated\nconst hasDeactivatedNodes = workflow.nodes.some(n => n.disabled === true);\n\nreturn [\n  {\n    json: {\n      hasDeactivatedNodes: hasDeactivatedNodes\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        32
+      ],
+      "id": "fd811bf5-b213-4164-9873-e2c87859ad86",
+      "name": "Parse & Validate Response",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        464,
+        -64
+      ],
+      "id": "91ec0a24-40b0-477c-ab41-e8ab4ec32daa",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const status = $input.all().find(i => i.json.status !== undefined)?.json.status || null;\nconst updated_workflow = $input.all().find(i => i.json.updated_workflow !== undefined)?.json.updated_workflow || null;\nconst hasDeactivatedNodes = $input.all().find(i => i.json.hasDeactivatedNodes !== undefined)?.json.hasDeactivatedNodes || false;\n\nreturn [\n  {\n    json: {\n      status,\n      updated_workflow,\n      hasDeactivatedNodes\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -64
+      ],
+      "id": "c0f2e782-7e71-47c0-9c9e-6c57d333b07a",
+      "name": "Code in JavaScript",
+      "disabled": true
+    },
+    {
+      "id": "webhook_1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -64
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-workflow-test-1759841905530"
+      }
+    },
+    {
+      "id": "set_1",
+      "name": "Set Sample Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        42,
+        -64
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "exampleField",
+              "value": "example value"
+            },
+            {
+              "name": "source",
+              "value": "webhook-test"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Parse & Validate Response5": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Response5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Parse & Validate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate Response": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Sample Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Sample Data": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York",
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "814a1eb0-87bd-478d-820f-fe55139cd90a",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "createdAt": "2025-10-07T12:58:25.617Z",
+      "updatedAt": "2025-10-07T12:58:25.617Z",
+      "role": "workflow:owner",
+      "workflowId": "8RoFIpVhL3121zdO",
+      "projectId": "nSUbNPn8P23MJaxQ",
+      "project": {
+        "createdAt": "2025-08-19T13:24:42.941Z",
+        "updatedAt": "2025-08-19T13:25:25.513Z",
+        "id": "nSUbNPn8P23MJaxQ",
+        "name": "Sanjay Makwana <sanjay.makwana@e2m.solutions>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "createdAt": "2025-08-19T13:24:42.957Z",
+            "updatedAt": "2025-08-19T13:24:42.957Z",
+            "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+            "projectId": "nSUbNPn8P23MJaxQ",
+            "user": {
+              "createdAt": "2025-08-19T13:24:42.285Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
+              "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
+              "email": "sanjay.makwana@e2m.solutions",
+              "firstName": "Sanjay",
+              "lastName": "Makwana",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-08-19T13:25:56.618Z",
+                "personalization_survey_n8n_version": "1.107.3",
+                "automationGoalDevops": [
+                  "ticketing-systems-integrations",
+                  "data-syncing"
+                ],
+                "companyIndustryExtended": [
+                  "it-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "it",
+                "reportedSource": "google"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "9HG8S6sJBTFvXXIZ",
+                "userActivatedAt": 1755781899419,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1756103555035
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-10-08",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}
