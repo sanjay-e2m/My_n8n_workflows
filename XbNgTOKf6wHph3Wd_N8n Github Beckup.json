@@ -1,6 +1,6 @@
 {
   "createdAt": "2025-09-03T12:25:34.064Z",
-  "updatedAt": "2025-09-04T12:58:18.000Z",
+  "updatedAt": "2025-10-06T11:49:38.000Z",
   "id": "XbNgTOKf6wHph3Wd",
   "name": "N8n Github Beckup",
   "active": false,
@@ -370,8 +370,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -4432,
-        -464
+        -4400,
+        -480
       ],
       "typeVersion": 1,
       "id": "86484e7e-389f-4d12-b0a8-1047536d3da9",
@@ -561,7 +561,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "f0467c2d-b193-4acb-9417-7b9a74d99c37",
+  "versionId": "fbec9650-1539-458a-bf50-936ba5e0e70e",
   "triggerCount": 0,
   "shared": [
     {
@@ -582,12 +582,11 @@
           {
             "createdAt": "2025-08-19T13:24:42.957Z",
             "updatedAt": "2025-08-19T13:24:42.957Z",
-            "role": "project:personalOwner",
             "userId": "bec985b6-4c5b-4f76-a28c-588449d2617c",
             "projectId": "nSUbNPn8P23MJaxQ",
             "user": {
               "createdAt": "2025-08-19T13:24:42.285Z",
-              "updatedAt": "2025-09-16T09:46:32.000Z",
+              "updatedAt": "2025-10-08T04:11:33.000Z",
               "id": "bec985b6-4c5b-4f76-a28c-588449d2617c",
               "email": "sanjay.makwana@e2m.solutions",
               "firstName": "Sanjay",
@@ -618,10 +617,9 @@
                   "lastShownAt": 1756103555035
                 }
               },
-              "role": "global:owner",
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-09-16",
+              "lastActiveAt": "2025-10-08",
               "isPending": false
             }
           }
